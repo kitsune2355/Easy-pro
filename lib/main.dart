@@ -1,4 +1,4 @@
-import 'package:easy_pro/screens/home_screen.dart';
+import 'package:easy_pro/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
@@ -57,8 +57,8 @@ class EasyProApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginScreen(),
-      // home: const HomeScreen(),
+      // home: const LoginScreen(),
+      home: MainScreen(),
     );
   }
 }
