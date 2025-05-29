@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:easy_pro/controllers/login_controller.dart';
 import 'package:easy_pro/screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -131,7 +134,7 @@ class _BackgroundShapes extends StatelessWidget {
           child: Transform.rotate(
             angle: 0.0,
             child: CustomPaint(
-              size: Size(width * 1, height * 1), // ขนาดของสามเหลี่ยม
+              size: Size(width * 1, height * 1),
               painter: TrianglePainter(),
             ),
           ),
@@ -170,30 +173,42 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+String generateMd5(String input) {
+  String result = input;
+  for (int i = 0; i < 3; i++) {
+    result = md5.convert(utf8.encode(result)).toString();
+  }
+  return result;
+}
+
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final username = TextEditingController();
-  // final _password = TextEditingController();
+  final password = TextEditingController();
   bool isLoading = false;
 
   void _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => isLoading = true);
-      bool success = await LoginController.login(username.text);
-      setState(() => isLoading = false);
+  if (_formKey.currentState!.validate()) {
+    setState(() => isLoading = true);
 
-      if (success) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')),
-        );
-      }
+    final hashedPassword = generateMd5(password.text.trim());
+
+    bool success = await LoginController.login(username.text.trim(), hashedPassword);
+
+    setState(() => isLoading = false);
+
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -216,8 +231,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const _AppTitle(),
                       const SizedBox(height: 40),
                       _UsernameField(controller: username),
-                      // const SizedBox(height: 20),
-                      // _PasswordField(controller: _passwordController),
+                      const SizedBox(height: 20),
+                      _PasswordField(controller: password),
                       const SizedBox(height: 50),
                       isLoading
                           ? const CircularProgressIndicator()
