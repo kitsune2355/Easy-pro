@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:easy_pro/controllers/login_controller.dart';
-import 'package:easy_pro/screens/home_screen.dart';
+import 'package:easy_pro/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 
 class _Logo extends StatelessWidget {
@@ -102,7 +102,7 @@ InputDecoration _inputDecoration(String hint) {
     hintStyle: const TextStyle(color: Color(0xFFB0B0B0)),
     fillColor: Colors.white,
     filled: true,
-    contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
       borderSide: const BorderSide(color: Color(0xFF006B9F), width: 2),
@@ -200,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => MainScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
