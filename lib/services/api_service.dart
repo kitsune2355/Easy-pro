@@ -3,9 +3,18 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 class ApiService {
-  static Future<dynamic> post(String endpoint, {Map<String, String>? body}) async {
+  static Future<dynamic> post(
+    String endpoint, {
+    Map<String, String>? body,
+  }) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/$endpoint');
-    final response = await http.post(url, body: body);
+    final response = await http.post(
+      url,
+      headers: {
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
