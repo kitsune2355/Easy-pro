@@ -10,23 +10,7 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('assets/images/logo_pro.png', height: 120);
-  }
-}
-
-class _AppTitle extends StatelessWidget {
-  const _AppTitle();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text(
-      "EasyPro",
-      style: TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF006B9F),
-      ),
-    );
+    return Image.asset('assets/images/Easy_Prologo.png', height: 120);
   }
 }
 
@@ -188,63 +172,76 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   void _handleLogin() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() => isLoading = true);
+    if (_formKey.currentState!.validate()) {
+      setState(() => isLoading = true);
 
-    final hashedPassword = generateMd5(password.text.trim());
+      final hashedPassword = generateMd5(password.text.trim());
 
-    bool success = await LoginController.login(username.text.trim(), hashedPassword);
-
-    setState(() => isLoading = false);
-
-    if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+      bool success = await LoginController.login(
+        username.text.trim(),
+        hashedPassword,
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')),
-      );
+
+      setState(() => isLoading = false);
+
+      if (success) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')),
+        );
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF006B9F),
       body: Stack(
-        children: [
-          const _BackgroundShapes(),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Center(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const _Logo(),
-                      const SizedBox(height: 20),
-                      const _AppTitle(),
-                      const SizedBox(height: 40),
-                      _UsernameField(controller: username),
-                      const SizedBox(height: 20),
-                      _PasswordField(controller: password),
-                      const SizedBox(height: 50),
-                      isLoading
-                          ? const CircularProgressIndicator()
-                          : _LoginButton(onPressed: _handleLogin),
-                    ],
-                  ),
-                ),
-              ),
+  children: [
+    const _BackgroundShapes(),
+    SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Center(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const _Logo(),
+                const SizedBox(height: 40),
+                _UsernameField(controller: username),
+                const SizedBox(height: 20),
+                _PasswordField(controller: password),
+                const SizedBox(height: 50),
+                isLoading
+                    ? const CircularProgressIndicator()
+                    : _LoginButton(onPressed: _handleLogin),
+              ],
             ),
           ),
-        ],
+        ),
       ),
+    ),
+    Positioned(
+      bottom: 10,
+      right: 10,
+      child: Text(
+        'PROACTIVE MANAGEMENT CO,.LTD',
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.8),
+          fontSize: 10,
+        ),
+      ),
+    ),
+  ],
+),
+
     );
   }
 }

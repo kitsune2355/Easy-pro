@@ -57,8 +57,8 @@ class EasyProApp extends StatelessWidget {
           ),
         ),
       ),
-      // home: const LoginScreen(),
-      home: MainScreen(),
+      home: const LoginScreen(),
+      // home: MainScreen(),
     );
   }
 }
