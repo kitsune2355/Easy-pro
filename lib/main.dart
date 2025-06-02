@@ -2,6 +2,7 @@ import 'package:easy_pro/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const EasyProApp());
@@ -41,6 +42,16 @@ class EasyProApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const [
+      Locale('th', ''),
+      Locale('en', ''),
+    ],
+    locale: const Locale('th', ''),
       theme: baseTheme.copyWith(
         textTheme: GoogleFonts.promptTextTheme(baseTheme.textTheme).copyWith(
           displayLarge: GoogleFonts.prompt(

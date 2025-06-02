@@ -70,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
               )
             : null, // ถ้าไม่ใช่หน้า Repair ก็ไม่ต้องแสดงปุ่ม
         foregroundColor: Colors.white,
-        backgroundColor: const Color(0xFF006B9F),
+        backgroundColor: Theme.of(context).primaryColor,
       ),
 
       drawer: Drawer(
@@ -137,7 +137,7 @@ class _MainScreenState extends State<MainScreen> {
         onTap: _onItemTapped,
         selectedItemColor: Colors.white,
         unselectedItemColor: const Color(0xFF6DC0E9),
-        backgroundColor: const Color(0xFF006B9F),
+        backgroundColor: Theme.of(context).primaryColor,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

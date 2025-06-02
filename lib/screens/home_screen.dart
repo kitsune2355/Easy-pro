@@ -52,18 +52,18 @@ class HomeScreen extends StatelessWidget {
                   onTap: item.onTap,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF006B9F),
+                      color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(item.icon, size: 24, color: Colors.white),
+                        Icon(item.icon, size: 20, color: Colors.white),
                         const SizedBox(height: 4),
                         Text(
                           item.title,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
