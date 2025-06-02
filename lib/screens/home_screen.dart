@@ -378,7 +378,7 @@ class HomeScreen extends StatelessWidget {
                 child: Text(
                   'ดูทั้งหมด',
                   style: TextStyle(
-                    color: Colors.blue[800],
+                    color: Colors.grey[500],
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),

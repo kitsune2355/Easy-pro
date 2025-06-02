@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // Import for File operations
-import 'package:intl/intl.dart'; // Import for date formatting
-import 'package:intl/date_symbol_data_local.dart'; // Import for locale-specific date symbols
+import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class RepairScreen extends StatefulWidget {
   const RepairScreen({super.key});
@@ -14,12 +14,12 @@ class RepairScreen extends StatefulWidget {
 class _RepairScreenState extends State<RepairScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _problemDetailController = TextEditingController();
+  // MARK: - Controllers
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _problemDetailController = TextEditingController();
 
-  // Fields
+  // MARK: - Form Data Fields
   DateTime? _reportDate;
   TimeOfDay? _reportTime;
   DateTime? _repairDate;
@@ -31,27 +31,40 @@ class _RepairScreenState extends State<RepairScreen> {
   String? _room;
   XFile? _image;
 
-  // Sample dropdown values
-  final _channels = ['โทรศัพท์', 'แอปพลิเคชัน', 'หน้าเคาน์เตอร์'];
-  final _services = ['ซ่อมแซม', 'ติดตั้ง'];
-  final _jobs = ['ไฟฟ้า', 'ประปา', 'ทั่วไป'];
-  final _buildings = ['A', 'B', 'C'];
-  final _floors = ['1', '2', '3'];
-  final _rooms = ['101', '102', '103'];
+  // MARK: - Dropdown Data Sources
+  static const List<String> _channels = ['โทรศัพท์', 'แอปพลิเคชัน', 'หน้าเคาน์เตอร์'];
+  static const List<String> _services = ['ซ่อมแซม', 'ติดตั้ง'];
+  static const List<String> _jobs = ['ไฟฟ้า', 'ประปา', 'ทั่วไป'];
+  static const List<String> _buildings = ['A', 'B', 'C'];
+  static const List<String> _floors = ['1', '2', '3', '4', '5'];
+  static const List<String> _rooms = ['101', '102', '103', '201', '202'];
 
   @override
   void initState() {
     super.initState();
-    // Initialize date symbols for Thai locale
-    initializeDateFormatting('th', null).then((_) {
-      setState(() {
-        // You might want to set initial dates/times here if needed
-      });
+    _initializeThaiDateFormatting();
+  }
+
+  Future<void> _initializeThaiDateFormatting() async {
+    // Ensure Thai locale data is loaded for date formatting
+    await initializeDateFormatting('th', null);
+    setState(() {
+      // Rebuild widget tree after locale data is loaded if needed
     });
   }
 
+  @override
+  void dispose() {
+    // Dispose controllers to prevent memory leaks
+    _nameController.dispose();
+    _phoneController.dispose();
+    _problemDetailController.dispose();
+    super.dispose();
+  }
+
+  /// Handles date picking and updates the relevant state variable.
   Future<void> _pickDate(BuildContext context, void Function(DateTime) onPicked) async {
-    final date = await showDatePicker(
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
@@ -60,13 +73,13 @@ class _RepairScreenState extends State<RepairScreen> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor, // Header background color
-              onPrimary: Colors.white, // Header text color
-              onSurface: Colors.black, // Body text color
+              primary: Theme.of(context).primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).primaryColor, // Button text color
+                foregroundColor: Theme.of(context).primaryColor,
               ),
             ),
           ),
@@ -74,49 +87,91 @@ class _RepairScreenState extends State<RepairScreen> {
         );
       },
     );
-    if (date != null) onPicked(date);
+    if (pickedDate != null) {
+      onPicked(pickedDate);
+    }
   }
 
+  /// Handles time picking and updates the _reportTime state variable.
   Future<void> _pickTime(BuildContext context) async {
-    final time = await showTimePicker(
+    final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor, // Header background color
-              onPrimary: Colors.white, // Header text color
-              onSurface: Colors.black, // Body text color
+              primary: Theme.of(context).primaryColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).primaryColor, // Button text color
+                foregroundColor: Theme.of(context).primaryColor,
               ),
             ),
           ),
-          child: MediaQuery( // Wrap with MediaQuery to ensure 24-hour format can be applied
+          child: MediaQuery(
             data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
             child: child!,
           ),
         );
       },
     );
-    if (time != null) setState(() => _reportTime = time);
+    if (pickedTime != null) {
+      setState(() => _reportTime = pickedTime);
+    }
   }
 
+  /// Handles image picking from the gallery and updates the _image state variable.
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) setState(() => _image = pickedFile);
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() => _image = pickedFile);
+    }
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _problemDetailController.dispose();
-    super.dispose();
+  /// Submits the form data after validation.
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      final Map<String, dynamic> formData = {
+        'reportDate': _reportDate != null ? DateFormat('yyyy-MM-dd').format(_reportDate!) : null,
+        'reportTime': _reportTime != null ? _formatTimeOfDay(_reportTime!) : null,
+        'repairDate': _repairDate != null ? DateFormat('yyyy-MM-dd').format(_repairDate!) : null,
+        'reportChannel': _reportChannel,
+        'serviceType': _serviceType,
+        'jobType': _jobType,
+        'name': _nameController.text,
+        'phone': _phoneController.text,
+        'building': _building,
+        'floor': _floor,
+        'room': _room,
+        'problemDetail': _problemDetailController.text,
+        'imagePath': _image?.path,
+      };
+      print(formData); // For debugging purposes
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กำลังส่งข้อมูลการแจ้งซ่อม...'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // In a real application, you would typically send this data to a backend API.
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณากรอกข้อมูลให้ครบถ้วน'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Formats TimeOfDay to a HH:mm string.
+  String _formatTimeOfDay(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -124,149 +179,76 @@ class _RepairScreenState extends State<RepairScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('แจ้งซ่อม'),
-        backgroundColor: Colors.white,
-        foregroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDateField('วันที่แจ้งซ่อม', _reportDate, (val) => setState(() => _reportDate = val)),
-              const SizedBox(height: 16),
-              _buildTimeField('เวลาแจ้งซ่อม'),
-              const SizedBox(height: 16),
-              _buildDateField('วันที่เข้าซ่อม', _repairDate, (val) => setState(() => _repairDate = val)),
-              const SizedBox(height: 16),
+              _buildSectionHeader('ข้อมูลการแจ้ง'),
+              const SizedBox(height: 12),
+              _buildCardSection([
+                _buildDateField('วันที่แจ้งซ่อม', _reportDate, (val) => setState(() => _reportDate = val)),
+                const SizedBox(height: 16),
+                _buildTimeField('เวลาแจ้งซ่อม'),
+                const SizedBox(height: 16),
+                _buildDateField('วันที่เข้าซ่อม (ถ้ามี)', _repairDate, (val) => setState(() => _repairDate = val)),
+              ]),
+              const SizedBox(height: 24),
 
-              _buildDropdown('ช่องทางแจ้งงาน', _reportChannel, _channels, (val) => setState(() => _reportChannel = val)),
-              const SizedBox(height: 16),
-              _buildDropdown('ชนิดของการบริการ', _serviceType, _services, (val) => setState(() => _serviceType = val)),
-              const SizedBox(height: 16),
-              _buildDropdown('ประเภทงาน', _jobType, _jobs, (val) => setState(() => _jobType = val)),
-              const SizedBox(height: 16),
+              _buildSectionHeader('รายละเอียดบริการ'),
+              const SizedBox(height: 12),
+              _buildCardSection([
+                _buildDropdown('ช่องทางแจ้งงาน', _reportChannel, _channels, (val) => setState(() => _reportChannel = val)),
+                const SizedBox(height: 16),
+                _buildDropdown('ชนิดของการบริการ', _serviceType, _services, (val) => setState(() => _serviceType = val)),
+                const SizedBox(height: 16),
+                _buildDropdown('ประเภทงาน', _jobType, _jobs, (val) => setState(() => _jobType = val)),
+              ]),
+              const SizedBox(height: 24),
 
-              _buildTextField('ชื่อผู้แจ้ง', _nameController),
-              const SizedBox(height: 16),
-              _buildTextField('เบอร์โทร', _phoneController, keyboardType: TextInputType.phone),
-              const SizedBox(height: 16),
+              _buildSectionHeader('ข้อมูลผู้แจ้ง'),
+              const SizedBox(height: 12),
+              _buildCardSection([
+                _buildTextField('ชื่อผู้แจ้ง', _nameController, hintText: 'กรุณากรอกชื่อ-นามสกุล'),
+                const SizedBox(height: 16),
+                _buildTextField('เบอร์โทร', _phoneController, keyboardType: TextInputType.phone, hintText: 'เช่น 0812345678'),
+              ]),
+              const SizedBox(height: 24),
 
-              _buildDropdown('อาคาร', _building, _buildings, (val) => setState(() => _building = val)),
-              const SizedBox(height: 16),
-              _buildDropdown('ชั้น', _floor, _floors, (val) => setState(() => _floor = val)),
-              const SizedBox(height: 16),
-              _buildDropdown('ห้อง', _room, _rooms, (val) => setState(() => _room = val)),
-              const SizedBox(height: 16),
+              _buildSectionHeader('สถานที่'),
+              const SizedBox(height: 12),
+              _buildCardSection([
+                _buildDropdown('อาคาร', _building, _buildings, (val) => setState(() => _building = val)),
+                const SizedBox(height: 16),
+                _buildDropdown('ชั้น', _floor, _floors, (val) => setState(() => _floor = val)),
+                const SizedBox(height: 16),
+                _buildDropdown('ห้อง', _room, _rooms, (val) => setState(() => _room = val)),
+              ]),
+              const SizedBox(height: 24),
 
-              TextFormField(
-                controller: _problemDetailController,
-                maxLines: 4, // Increased maxLines for more detail
-                decoration: InputDecoration(
-                  labelText: 'รายละเอียดของปัญหา',
-                  hintText: 'กรุณากรอกรายละเอียดของปัญหาที่พบ',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                ),
-                validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกรายละเอียดของปัญหา' : null,
-              ),
-
-              const SizedBox(height: 24), // More space before image picker
-              Column(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.camera_alt),
-                    label: Text(_image == null ? 'แนบรูปประกอบ' : 'เปลี่ยนรูป'),
-                    onPressed: _pickImage,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50), // Make button full width
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                  if (_image != null) ...[
-                    const SizedBox(height: 12),
-                    Text('รูปภาพที่เลือก: ${_image!.name}', style: TextStyle(color: Colors.grey.shade600)),
-                    const SizedBox(height: 8),
-                    // Display a small thumbnail or placeholder
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.file(
-                          File(_image!.path),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                  ],
+              _buildSectionHeader('รายละเอียดปัญหา'),
+              const SizedBox(height: 12),
+              _buildCardSection([
+                _buildProblemDetailField(),
+                const SizedBox(height: 24),
+                _buildImagePicker(),
+                if (_image != null) ...[
+                  const SizedBox(height: 12),
+                  Text('รูปภาพที่เลือก: ${_image!.name}', style: TextStyle(color: Colors.grey.shade600)),
+                  const SizedBox(height: 8),
+                  _buildImagePreview(),
                 ],
-              ),
+              ]),
 
-              const SizedBox(height: 32), // More space before submit button
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // Collect all data
-                    final formData = {
-                      'reportDate': _reportDate != null ? DateFormat('yyyy-MM-dd').format(_reportDate!) : null,
-                      'reportTime': _reportTime != null ? '${_reportTime!.hour.toString().padLeft(2, '0')}:${_reportTime!.minute.toString().padLeft(2, '0')}' : null,
-                      'repairDate': _repairDate != null ? DateFormat('yyyy-MM-dd').format(_repairDate!) : null,
-                      'reportChannel': _reportChannel,
-                      'serviceType': _serviceType,
-                      'jobType': _jobType,
-                      'name': _nameController.text,
-                      'phone': _phoneController.text,
-                      'building': _building,
-                      'floor': _floor,
-                      'room': _room,
-                      'problemDetail': _problemDetailController.text,
-                      'imagePath': _image?.path,
-                    };
-                    print(formData); // For debugging: print form data
+              const SizedBox(height: 32),
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('กำลังส่งข้อมูลการแจ้งซ่อม...'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    // In a real application, you would send this data to a backend.
-                    // Example: API call, database save, etc.
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('กรุณากรอกข้อมูลให้ครบถ้วน'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(55), // Make button full width and slightly taller
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Rounded corners
-                  ),
-                  elevation: 5, // Add shadow
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                child: const Text('ส่งแจ้งซ่อม'),
-              ),
+              _buildSubmitButton(),
             ],
           ),
         ),
@@ -274,80 +256,175 @@ class _RepairScreenState extends State<RepairScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType}) {
+  // MARK: - Reusable Widget Builders
+
+  /// Builds a standard text input field.
+  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType, String? hintText}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      ),
+      decoration: _buildInputDecoration(label, hintText: hintText),
       validator: (value) => value == null || value.isEmpty ? 'กรุณากรอก $label' : null,
     );
   }
 
+  /// Builds a standard dropdown input field.
   Widget _buildDropdown(String label, String? value, List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      ),
+      decoration: _buildInputDecoration(label),
       items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
       onChanged: onChanged,
       validator: (value) => value == null ? 'กรุณาเลือก $label' : null,
     );
   }
 
+  /// Builds a date input field with a date picker.
   Widget _buildDateField(String label, DateTime? value, void Function(DateTime) onPicked) {
     return TextFormField(
       readOnly: true,
       controller: TextEditingController(
-        text: value == null ? '' : DateFormat('d MMMM y', 'th').format(value), // Thai date format
+        text: value == null ? '' : DateFormat('d MMMM y', 'th').format(value),
       ),
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: const Icon(Icons.calendar_today),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      ),
+      decoration: _buildInputDecoration(label, prefixIcon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor)),
       onTap: () => _pickDate(context, onPicked),
       validator: (val) => value == null ? 'กรุณาเลือก $label' : null,
     );
   }
 
+  /// Builds a time input field with a time picker.
   Widget _buildTimeField(String label) {
     return TextFormField(
       readOnly: true,
       controller: TextEditingController(
-        text: _reportTime == null ? '' : DateFormat('HH:mm').format(DateTime(2023, 1, 1, _reportTime!.hour, _reportTime!.minute)), // 24-hour format
+        text: _reportTime == null ? '' : _formatTimeOfDay(_reportTime!),
       ),
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        suffixIcon: const Icon(Icons.access_time),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-      ),
+      decoration: _buildInputDecoration(label, prefixIcon: Icon(Icons.access_time, color: Theme.of(context).primaryColor)),
       onTap: () => _pickTime(context),
       validator: (val) => _reportTime == null ? 'กรุณาเลือก $label' : null,
+    );
+  }
+
+  /// Builds the problem detail text area.
+  Widget _buildProblemDetailField() {
+    return TextFormField(
+      controller: _problemDetailController,
+      maxLines: 5,
+      decoration: _buildInputDecoration(
+        'รายละเอียดของปัญหา',
+        hintText: 'โปรดอธิบายปัญหาที่พบอย่างละเอียด เช่น แอร์ไม่เย็น, ก๊อกน้ำรั่ว, ไฟฟ้าดับ',
+      ),
+      validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกรายละเอียดของปัญหา' : null,
+    );
+  }
+
+  /// Builds the image picker button.
+  Widget _buildImagePicker() {
+    return ElevatedButton.icon(
+      icon: const Icon(Icons.camera_alt),
+      label: Text(_image == null ? 'แนบรูปภาพประกอบ (ถ้ามี)' : 'เปลี่ยนรูปภาพ'),
+      onPressed: _pickImage,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size.fromHeight(50),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  /// Builds the image preview thumbnail.
+  Widget _buildImagePreview() {
+    return Container(
+      width: 120,
+      height: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: Image.file(
+          File(_image!.path),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) =>
+              const Icon(Icons.broken_image, size: 60, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the submit button.
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _submitForm,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        minimumSize: const Size.fromHeight(55),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        elevation: 5,
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      child: const Text('ส่งแจ้งซ่อม'),
+    );
+  }
+
+  /// Builds a common InputDecoration for text fields and dropdowns.
+  InputDecoration _buildInputDecoration(String label, {String? hintText, Widget? prefixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hintText,
+      prefixIcon: prefixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.grey[50],
+      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+    );
+  }
+
+  /// Builds a card section with a list of children.
+  Widget _buildCardSection(List<Widget> children) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  /// Builds a section header text.
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
     );
   }
 }
