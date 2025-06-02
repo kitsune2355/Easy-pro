@@ -28,7 +28,10 @@ class EasyProApp extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         hintStyle: const TextStyle(color: Color(0xFFB0B0B0)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
           borderSide: BorderSide.none,
@@ -43,15 +46,12 @@ class EasyProApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: const [
-      Locale('th', ''),
-      Locale('en', ''),
-    ],
-    locale: const Locale('th', ''),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('th', ''), Locale('en', '')],
+      locale: const Locale('th', ''),
       theme: baseTheme.copyWith(
         textTheme: GoogleFonts.promptTextTheme(baseTheme.textTheme).copyWith(
           displayLarge: GoogleFonts.prompt(
@@ -63,9 +63,7 @@ class EasyProApp extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
-          bodyMedium: GoogleFonts.prompt(
-            fontSize: 16,
-          ),
+          bodyMedium: GoogleFonts.prompt(fontSize: 16),
         ),
       ),
       // home: const LoginScreen(),

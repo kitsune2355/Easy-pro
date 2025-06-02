@@ -124,8 +124,8 @@ class _RepairScreenState extends State<RepairScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('แจ้งซ่อม'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white, // For the back button and title color
+        backgroundColor: Colors.white,
+        foregroundColor: Theme.of(context).primaryColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
