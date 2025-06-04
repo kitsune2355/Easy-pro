@@ -16,16 +16,19 @@ class JobStatistic {
   });
 }
 
+// Re-defining RecentActivity to match the structure of your HistoryRepairItem
 class RecentActivity {
-  final IconData icon;
-  final String task;
+  final String date;
+  final String title;
+  final String detail;
   final String status;
   final String time;
-  final Color statusColor;
+  final Color statusColor; // Added for convenience
 
   RecentActivity({
-    required this.icon,
-    required this.task,
+    required this.date,
+    required this.title,
+    required this.detail,
     required this.status,
     required this.time,
     required this.statusColor,
@@ -62,39 +65,50 @@ class HomeScreen extends StatelessWidget {
       icon: Icons.task_alt_rounded,
       color: Colors.green.shade600,
     ),
-    // Add more statistic cards as needed
   ];
 
+  // Updated _recentActivities to reflect HistoryRepairItem data
   List<RecentActivity> get _recentActivities => [
     RecentActivity(
-      icon: Icons.build_circle_rounded,
-      task: 'ซ่อมเครื่องปรับอากาศ #A123',
+      date: '2567-05-30',
+      title: 'ซ่อมเครื่องปรับอากาศ',
+      detail: 'แอร์ไม่เย็น มีน้ำหยด',
       status: 'เสร็จสิ้น',
-      time: 'วันนี้, 14:30 น.',
+      time: '14:30 น.',
       statusColor: Colors.green.shade600,
     ),
     RecentActivity(
-      icon: Icons.lightbulb_outline_rounded,
-      task: 'เปลี่ยนหลอดไฟชั้น 3 #L456',
+      date: '2567-05-28',
+      title: 'เปลี่ยนหลอดไฟ',
+      detail: 'ไฟห้องประชุมเสีย',
       status: 'รอดำเนินการ',
-      time: 'เมื่อวาน, 10:00 น.',
+      time: '10:00 น.',
       statusColor: Colors.orange.shade600,
     ),
     RecentActivity(
-      icon: Icons.water_drop_rounded,
-      task: 'แก้ไขน้ำรั่วห้องน้ำ #W789',
+      date: '2567-05-25',
+      title: 'แก้ไขน้ำรั่ว',
+      detail: 'น้ำรั่วจากเพดานห้องน้ำ',
       status: 'เสร็จสิ้น',
-      time: '2 วันที่แล้ว',
+      time: '09:00 น.',
       statusColor: Colors.green.shade600,
     ),
     RecentActivity(
-      icon: Icons.electrical_services_rounded,
-      task: 'ติดตั้งเต้ารับใหม่ #E012',
+      date: '2567-05-22',
+      title: 'ติดตั้งเต้ารับใหม่',
+      detail: 'ติดตั้งเต้ารับเพิ่มในห้องทำงาน',
       status: 'รอดำเนินการ',
-      time: '3 วันที่แล้ว',
+      time: '11:00 น.',
       statusColor: Colors.orange.shade600,
     ),
-    // Add more activities as needed
+     RecentActivity(
+      date: '2567-05-20',
+      title: 'บำรุงรักษาระบบเครือข่าย',
+      detail: 'ตรวจสอบและแก้ไขปัญหาอินเทอร์เน็ต',
+      status: 'เสร็จสิ้น',
+      time: '16:00 น.',
+      statusColor: Colors.green.shade600,
+    ),
   ];
 
   @override
@@ -102,7 +116,6 @@ class HomeScreen extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
-    // Common body content to avoid duplication
     final Widget bodyContent = SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 20.0),
       child: Column(
@@ -117,17 +130,16 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Using LayoutBuilder to make GridView responsive
           LayoutBuilder(
             builder: (context, constraints) {
-              int crossAxisCount = 3; // Default for mobile
+              int crossAxisCount = 3;
               double childAspectRatio = 0.8;
               if (constraints.maxWidth > 600) {
-                crossAxisCount = 4; // For tablets
+                crossAxisCount = 4;
                 childAspectRatio = 1.0;
               }
               if (constraints.maxWidth > 900) {
-                crossAxisCount = 4; // For larger screens
+                crossAxisCount = 4;
                 childAspectRatio = 1.0;
               }
               return GridView.builder(
@@ -164,11 +176,10 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Using Wrap for responsive action buttons
           Wrap(
-            spacing: 16.0, // Horizontal space between buttons
-            runSpacing: 16.0, // Vertical space between rows of buttons
-            alignment: WrapAlignment.center, // Center the buttons
+            spacing: 16.0,
+            runSpacing: 16.0,
+            alignment: WrapAlignment.center,
             children: [
               _buildActionButton(
                 context,
@@ -206,7 +217,7 @@ class HomeScreen extends StatelessWidget {
 
     return isIOS
         ? CupertinoPageScaffold(
-            backgroundColor: CupertinoColors.systemGrey6, // iOS light grey
+            backgroundColor: CupertinoColors.systemGrey6,
             child: SafeArea(
               child: bodyContent,
             ),
@@ -226,11 +237,11 @@ class HomeScreen extends StatelessWidget {
         required Color color,
       }) {
     return Card(
-      elevation: 4, // Slightly less elevation for a modern feel
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      shadowColor: Colors.black.withOpacity(0.08), // Softer shadow
+      shadowColor: Colors.black.withOpacity(0.08),
       child: Container(
-        padding: const EdgeInsets.all(16), // Reduced padding to give more internal space
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,35 +249,32 @@ class HomeScreen extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14), // Slightly smaller radius
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, size: 32, color: color), // Slightly smaller icon
+              child: Icon(icon, size: 32, color: color),
             ),
-            // Wrap title Text with Flexible to allow it to shrink if needed
             Flexible(
               child: Text(
                 title,
-                textAlign: TextAlign.center, // Center align title
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[600],
-                  fontSize: 12, // Slightly smaller font size
+                  fontSize: 12,
                 ),
-                maxLines: 2, // Limit lines to prevent excessive height
-                overflow: TextOverflow.ellipsis, // Add ellipsis if overflow
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-         
-            // Wrap value Text with Flexible and FittedBox for scaling
             Flexible(
               child: FittedBox(
-                fit: BoxFit.scaleDown, // Scale down if too large
+                fit: BoxFit.scaleDown,
                 child: Text(
                   value,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
-                    fontSize: 24, // Adjusted font size for value
+                    fontSize: 24,
                   ),
                 ),
               ),
@@ -286,8 +294,8 @@ class HomeScreen extends StatelessWidget {
         required Color color,
         List<Color>? gradientColors,
       }) {
-    return SizedBox( // Use SizedBox to control width in Wrap
-      width: 150, // Fixed width for action buttons
+    return SizedBox(
+      width: 150,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(22),
@@ -316,7 +324,7 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 48, color: Colors.white), // Slightly larger icon
+                Icon(icon, size: 48, color: Colors.white),
                 const SizedBox(height: 14),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -327,7 +335,7 @@ class HomeScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                       letterSpacing: 0.5,
-                      fontSize: 18, // Adjusted font size
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -349,29 +357,31 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Use ListView.builder for potentially long lists of activities
             ListView.separated(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Disable its own scrolling
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: _recentActivities.length,
-              separatorBuilder: (context, index) => Divider(height: 28, thickness: 0.8, color: Colors.grey.shade300), // Lighter divider
+              separatorBuilder: (context, index) => Divider(height: 28, thickness: 0.8, color: Colors.grey.shade300),
               itemBuilder: (context, index) {
                 final activity = _recentActivities[index];
+                // Pass a generic icon, or map based on title/detail if specific icons are needed
                 return _buildActivityTile(
-                  icon: activity.icon,
-                  task: activity.task,
+                  // Use a generic icon for now, or you can add an icon property to RecentActivity
+                  icon: Icons.build_circle_rounded, // Generic repair icon
+                  task: activity.title, // Use title for the main task description
                   status: activity.status,
-                  time: activity.time,
+                  time: "${activity.date}, ${activity.time}", // Combine date and time
                   statusColor: activity.statusColor,
                 );
               },
             ),
             const SizedBox(height: 16),
-            Align( // Align the button to the right
+            Align(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
                   // Navigate to full activities list
+                  onNavigateToHistory?.call(); // Use the callback to navigate to history
                 },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -402,14 +412,14 @@ class HomeScreen extends StatelessWidget {
     required Color statusColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding for each tile
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CircleAvatar(
-            radius: 24, // Slightly larger avatar
+            radius: 24,
             backgroundColor: statusColor.withOpacity(0.1),
-            child: Icon(icon, size: 28, color: statusColor), // Slightly larger icon
+            child: Icon(icon, size: 28, color: statusColor),
           ),
           const SizedBox(width: 18),
           Expanded(
@@ -419,7 +429,7 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   task,
                   style: const TextStyle(
-                    fontSize: 17, // Slightly larger font
+                    fontSize: 17,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
@@ -428,7 +438,7 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   time,
                   style: const TextStyle(
-                    fontSize: 14, // Slightly larger font
+                    fontSize: 14,
                     color: Colors.grey,
                   ),
                 ),
@@ -436,10 +446,10 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), // More padding
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(22), // More rounded corners
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(color: statusColor.withOpacity(0.3), width: 0.8),
             ),
             child: Text(
@@ -447,7 +457,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 color: statusColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 13, // Slightly larger font
+                fontSize: 13,
               ),
             ),
           ),
