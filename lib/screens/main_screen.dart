@@ -1,12 +1,13 @@
 import 'package:easy_pro/screens/history_repair_screen.dart';
 import 'package:easy_pro/screens/home_screen.dart';
+import 'package:easy_pro/screens/notifications_screen.dart' show NotificationsScreen;
 import 'package:easy_pro/screens/profile_screen.dart';
 import 'package:easy_pro/screens/settings_screen.dart';
 import 'package:easy_pro/screens/repair_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key}); // Added Key for best practice
+  const MainScreen({super.key});
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -14,62 +15,54 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 1; // Current index for IndexedStack
-  int _bottomNavIndex =
-      1; // Current index for BottomNavigationBar (Profile, Home, Settings)
+  int _bottomNavIndex = 1; // Current index for BottomNavigationBar
 
-  // List of all pages that can be displayed
   late final List<Widget> _pages;
-  // List of items for the Drawer (excluding logout for now)
   late final List<Map<String, dynamic>> _mainDrawerItems;
-  // Logout item, to be placed separately
   late final Map<String, dynamic> _logoutDrawerItem;
+
+  // Added state for notification count
+  int _notificationCount = 3; // Example: 3 unread notifications
 
   @override
   void initState() {
     super.initState();
-    // Initialize the list of pages
     _pages = [
       const ProfileScreen(),
       HomeScreen(
-        // Callbacks to navigate to Repair or History screens from Home
         onNavigateToRepair: () => _onItemTapped(3),
         onNavigateToHistory: () => _onItemTapped(4),
       ),
       const SettingsScreen(),
       const RepairScreen(), // Index 3
       const HistoryRepairScreen(), // Index 4
+      const NotificationsScreen(), // Index 5 for notifications screen
     ];
 
-    // Initialize the main drawer items
     _mainDrawerItems = [
       {
-        'icon': Icons.build_circle_outlined, // Modern icon
+        'icon': Icons.build_circle_outlined,
         'label': 'แจ้งซ่อม',
         'action': () {
-          // Navigate to Repair screen and close drawer
           Navigator.pop(context);
           _onItemTapped(3);
         },
       },
       {
-        'icon': Icons.access_time_filled_rounded, // Modern icon
-        'label': 'ประวัติการซ่อม', // More descriptive label
+        'icon': Icons.access_time_filled_rounded,
+        'label': 'ประวัติการซ่อม',
         'action': () {
-          // Navigate to History screen and close drawer
           Navigator.pop(context);
           _onItemTapped(4);
         },
       },
-      // Add other main drawer items here if needed
     ];
 
-    // Initialize the logout drawer item
     _logoutDrawerItem = {
-      'icon': Icons.logout, // Example logout icon
+      'icon': Icons.logout,
       'label': 'ออกจากระบบ',
       'action': () {
-        Navigator.pop(context); // Close the drawer
-        // TODO: Implement logout logic here
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Logout functionality not yet implemented'),
@@ -79,13 +72,10 @@ class _MainScreenState extends State<MainScreen> {
     };
   }
 
-  // Handles item tap for both BottomNavigationBar and Drawer
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // Update the page to display
+      _selectedIndex = index;
 
-      // Update _bottomNavIndex only if the index corresponds to a BottomNavigationBar item
-      // This ensures the BottomNavigationBar highlights correctly when navigating to Repair/History
       if (index <= 2) {
         _bottomNavIndex = index;
       }
@@ -100,33 +90,70 @@ class _MainScreenState extends State<MainScreen> {
           'EasyPro',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
-        centerTitle: true, // Center the title
+        centerTitle: true,
         foregroundColor: Colors.white,
-        backgroundColor: Theme.of(context).primaryColor, // Use the primary color
-        elevation: 0, // Remove shadow for a flatter look
-        // Conditional leading icon for back navigation from Repair/History screens
-        leading: _selectedIndex == 3 || _selectedIndex == 4
+        backgroundColor: Theme.of(context).primaryColor,
+        elevation: 0,
+        leading: _selectedIndex == 3 || _selectedIndex == 4 || _selectedIndex == 5
             ? IconButton(
                 icon: const Icon(
                   Icons.arrow_back_ios_new,
                   color: Colors.white,
-                ), // Modern back icon
+                ),
                 onPressed: () {
-                  // Navigate back to the last selected bottom navigation item
                   _onItemTapped(_bottomNavIndex);
                 },
               )
-            : null, // No leading icon for other pages (drawer icon will be there by default)
+            : null,
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Colors.white),
+                onPressed: () {
+                  _onItemTapped(5); // Navigate to notifications screen
+                  setState(() {
+                    _notificationCount = 0; // Clear notifications when accessed
+                  });
+                },
+              ),
+              if (_notificationCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$_notificationCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
 
       drawer: Drawer(
         child: Container(
-          color: Colors.white, // Keep it white for a cleaner look
-          child: Column( // Use Column instead of ListView directly
+          color: Colors.white,
+          child: Column(
             children: [
               DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor, // Use the primary color
+                  color: Theme.of(context).primaryColor,
                 ),
                 child: Row(
                   children: [
@@ -136,11 +163,10 @@ class _MainScreenState extends State<MainScreen> {
                         _onItemTapped(0);
                       },
                       child: CircleAvatar(
-                        radius: 36, // Slightly larger avatar
+                        radius: 36,
                         backgroundColor: Colors.white,
                         child: Icon(Icons.person,
-                            size: 40,
-                            color: Theme.of(context).primaryColor), // Example for a default icon
+                            size: 40, color: Theme.of(context).primaryColor),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -152,17 +178,17 @@ class _MainScreenState extends State<MainScreen> {
                           Text(
                             'สมชาย ใจดี',
                             style: TextStyle(
-                                fontSize: 18, // Slightly larger font
+                                fontSize: 18,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 6), // More spacing
+                          SizedBox(height: 6),
                           Text(
                             'ตำแหน่ง: ช่างซ่อม',
                             style:
                                 TextStyle(fontSize: 13, color: Colors.white70),
                           ),
-                          SizedBox(height: 3), // More spacing
+                          SizedBox(height: 3),
                           Text(
                             'รหัสพนักงาน: 123456789',
                             style:
@@ -174,37 +200,37 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              Expanded( // Wrap the main drawer items in an Expanded widget
+              Expanded(
                 child: ListView(
-                  padding: EdgeInsets.zero, // Important to remove default padding
+                  padding: EdgeInsets.zero,
                   children: [
                     ..._mainDrawerItems.map((item) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8.0, vertical: 4.0),
                         child: Card(
-                          elevation: 2, // Subtle elevation for luxury
+                          elevation: 2,
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(10), // Rounded corners
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: ListTile(
                             leading: Icon(
                               item['icon'],
-                              color: Theme.of(context).primaryColor, // Icon color
+                              color: Theme.of(context).primaryColor,
                             ),
                             title: Text(
                               item['label'],
                               style: const TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500, // Slightly bolder text
+                                fontWeight: FontWeight.w500,
                                 color: Colors.black87,
                               ),
                             ),
                             onTap: () {
                               item['action']();
                             },
-                            splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                            splashColor:
+                                Theme.of(context).primaryColor.withOpacity(0.2),
                           ),
                         ),
                       );
@@ -212,9 +238,9 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              // --- Spacer and Logout item at the bottom ---
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 child: Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -223,14 +249,14 @@ class _MainScreenState extends State<MainScreen> {
                   child: ListTile(
                     leading: Icon(
                       _logoutDrawerItem['icon'],
-                      color: Colors.redAccent, // A distinct color for logout
+                      color: Colors.redAccent,
                     ),
                     title: Text(
                       _logoutDrawerItem['label'],
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Colors.red, // Distinct color for logout text
+                        color: Colors.red,
                       ),
                     ),
                     onTap: () {
@@ -240,17 +266,15 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10), // Add some bottom padding
+              const SizedBox(height: 10),
             ],
           ),
         ),
       ),
-      // Display the selected page using IndexedStack for state preservation
       body: IndexedStack(index: _selectedIndex, children: _pages),
-
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor, // Background color of the container
+          color: Theme.of(context).primaryColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -269,15 +293,13 @@ class _MainScreenState extends State<MainScreen> {
             topRight: Radius.circular(20),
           ),
           child: BottomNavigationBar(
-            type:
-                BottomNavigationBarType.fixed, // Ensures all items are visible
+            type: BottomNavigationBarType.fixed,
             currentIndex: _bottomNavIndex,
             onTap: _onItemTapped,
-            selectedItemColor: Colors.white, // Color for selected icon/label
-            unselectedItemColor: const Color(
-                0xFF9FD7F3), // Lighter blue for unselected (remains good)
-            backgroundColor: Theme.of(context).primaryColor, // Background of the nav bar
-            elevation: 0, // Remove default elevation as container has shadow
+            selectedItemColor: Colors.white,
+            unselectedItemColor: const Color(0xFF9FD7F3),
+            backgroundColor: Theme.of(context).primaryColor,
+            elevation: 0,
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
             unselectedLabelStyle: const TextStyle(
               fontWeight: FontWeight.normal,
@@ -286,19 +308,19 @@ class _MainScreenState extends State<MainScreen> {
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.person_outline,
-                ), // Outline icon for modern look
-                activeIcon: Icon(Icons.person), // Filled icon when active
-                label: 'โปรไฟล์', // Thai label
+                ),
+                activeIcon: Icon(Icons.person),
+                label: 'โปรไฟล์',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined), // Outline icon
-                activeIcon: Icon(Icons.home), // Filled icon
-                label: 'หน้าหลัก', // Thai label
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'หน้าหลัก',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined), // Outline icon
-                activeIcon: Icon(Icons.settings), // Filled icon
-                label: 'ตั้งค่า', // Thai label
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings),
+                label: 'ตั้งค่า',
               ),
             ],
           ),

@@ -55,15 +55,16 @@ class EasyProApp extends StatelessWidget {
       theme: baseTheme.copyWith(
         textTheme: GoogleFonts.promptTextTheme(baseTheme.textTheme).copyWith(
           displayLarge: GoogleFonts.prompt(
-            fontSize: 32,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
           titleLarge: GoogleFonts.prompt(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
           bodyMedium: GoogleFonts.prompt(fontSize: 16),
+          bodySmall: GoogleFonts.prompt(fontSize: 14),
         ),
       ),
       // home: const LoginScreen(),

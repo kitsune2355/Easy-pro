@@ -100,7 +100,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final Color primaryColor = Theme.of(context).primaryColor;
     final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
 
     // Common body content to avoid duplication
@@ -112,7 +111,7 @@ class HomeScreen extends StatelessWidget {
           // --- Statistics Section ---
           Text(
             'ภาพรวมงานซ่อม',
-            style: textTheme.headlineSmall?.copyWith(
+            style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
@@ -121,12 +120,15 @@ class HomeScreen extends StatelessWidget {
           // Using LayoutBuilder to make GridView responsive
           LayoutBuilder(
             builder: (context, constraints) {
-              int crossAxisCount = 2; // Default for mobile
+              int crossAxisCount = 3; // Default for mobile
+              double childAspectRatio = 0.8;
               if (constraints.maxWidth > 600) {
-                crossAxisCount = 3; // For tablets
+                crossAxisCount = 4; // For tablets
+                childAspectRatio = 1.0;
               }
               if (constraints.maxWidth > 900) {
                 crossAxisCount = 4; // For larger screens
+                childAspectRatio = 1.0;
               }
               return GridView.builder(
                 shrinkWrap: true,
@@ -134,9 +136,9 @@ class HomeScreen extends StatelessWidget {
                 itemCount: _jobStatistics.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 1.0,
+                  mainAxisSpacing: 1.0,
+                  childAspectRatio: childAspectRatio,
                 ),
                 itemBuilder: (context, index) {
                   final stat = _jobStatistics[index];
@@ -156,7 +158,7 @@ class HomeScreen extends StatelessWidget {
           // --- Main Actions Section ---
           Text(
             'ดำเนินการด่วน',
-            style: textTheme.headlineSmall?.copyWith(
+            style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
@@ -174,7 +176,7 @@ class HomeScreen extends StatelessWidget {
                 icon: Icons.build_circle_outlined,
                 onTap: onNavigateToRepair,
                 color: Colors.teal.shade600,
-                gradientColors: [Colors.teal.shade600, Colors.teal.shade400],
+                gradientColors: [const Color(0xFF006289), Colors.teal.shade400],
               ),
               _buildActionButton(
                 context,
@@ -182,7 +184,7 @@ class HomeScreen extends StatelessWidget {
                 icon: Icons.access_time_filled_rounded,
                 onTap: onNavigateToHistory,
                 color: Colors.deepPurple.shade600,
-                gradientColors: [Colors.deepPurple.shade600, Colors.deepPurple.shade400],
+                gradientColors: [const Color(0xFFB13579), Colors.deepPurple.shade400],
               ),
             ],
           ),
@@ -191,7 +193,7 @@ class HomeScreen extends StatelessWidget {
           // --- Recent Activities Section ---
           Text(
             'กิจกรรมล่าสุด',
-            style: textTheme.headlineSmall?.copyWith(
+            style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
@@ -238,7 +240,7 @@ class HomeScreen extends StatelessWidget {
                 color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(14), // Slightly smaller radius
               ),
-              child: Icon(icon, size: 36, color: color), // Slightly smaller icon
+              child: Icon(icon, size: 32, color: color), // Slightly smaller icon
             ),
             // Wrap title Text with Flexible to allow it to shrink if needed
             Flexible(
@@ -248,7 +250,7 @@ class HomeScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[600],
-                  fontSize: 14, // Slightly smaller font size
+                  fontSize: 12, // Slightly smaller font size
                 ),
                 maxLines: 2, // Limit lines to prevent excessive height
                 overflow: TextOverflow.ellipsis, // Add ellipsis if overflow
@@ -380,7 +382,7 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.grey[500],
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                 ),
               ),
