@@ -18,6 +18,7 @@ class _MainScreenState extends State<MainScreen> {
   int _bottomNavIndex = 1; // Current index for BottomNavigationBar
 
   late final List<Widget> _pages;
+  late final List<String> _pageTitles; // New: List of titles for each page
   late final List<Map<String, dynamic>> _mainDrawerItems;
   late final Map<String, dynamic> _logoutDrawerItem;
 
@@ -34,9 +35,19 @@ class _MainScreenState extends State<MainScreen> {
         onNavigateToHistory: () => _onItemTapped(4),
       ),
       const SettingsScreen(),
-      const RepairScreen(), // Index 3
-      const HistoryRepairScreen(), // Index 4
-      const NotificationsScreen(), // Index 5 for notifications screen
+      const RepairScreen(),
+      const HistoryRepairScreen(),
+      const NotificationsScreen(),
+    ];
+
+    // Initialize page titles corresponding to the _pages list
+    _pageTitles = [
+      'โปรไฟล์',
+      'EasyPro',
+      'ตั้งค่า',
+      'แจ้งซ่อม',
+      'ประวัติการซ่อม',
+      'การแจ้งเตือน',
     ];
 
     _mainDrawerItems = [
@@ -86,9 +97,10 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'EasyPro',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        // Dynamically set the title based on the selected index
+        title: Text(
+          _pageTitles[_selectedIndex],
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
         centerTitle: true,
         foregroundColor: Colors.white,
@@ -145,7 +157,6 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-
       drawer: Drawer(
         child: Container(
           color: Colors.white,

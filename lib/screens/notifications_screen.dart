@@ -6,11 +6,6 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('การแจ้งเตือน'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -216,12 +216,7 @@ class _RepairScreenState extends State<RepairScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('แจ้งซ่อม'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
