@@ -1,3 +1,5 @@
+// lib/screens/repair_screen.dart
+import 'package:easy_pro/controllers/repair_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -24,10 +26,6 @@ class _RepairScreenState extends State<RepairScreen> {
   // Initialize with current date and time
   DateTime? _reportDate = DateTime.now();
   TimeOfDay? _reportTime = TimeOfDay.now();
-  DateTime? _repairDate;
-  String? _reportChannel;
-  String? _serviceType;
-  String? _jobType;
   String? _building;
   String? _floor;
   String? _room;
@@ -45,7 +43,6 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 
   Future<void> _initializeThaiDateFormatting() async {
-    // Ensure Thai locale data is loaded for date formatting
     await initializeDateFormatting('th', null);
     setState(() {
       // Rebuild widget tree after locale data is loaded if needed
@@ -54,7 +51,6 @@ class _RepairScreenState extends State<RepairScreen> {
 
   @override
   void dispose() {
-    // Dispose controllers to prevent memory leaks
     _nameController.dispose();
     _phoneController.dispose();
     _problemDetailController.dispose();
@@ -135,63 +131,114 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 
   /// Submits the form data after validation.
-  void _submitForm() {
+  void _submitForm() async { // Make the method async
     if (_formKey.currentState!.validate()) {
-      final Map<String, dynamic> formData = {
-        'reportDate': _reportDate != null
-            ? DateFormat('yyyy-MM-dd').format(_reportDate!)
-            : null,
-        'reportTime': _reportTime != null
-            ? _formatTimeOfDay(_reportTime!)
-            : null,
-        'repairDate': _repairDate != null
-            ? DateFormat('yyyy-MM-dd').format(_repairDate!)
-            : null,
-        'reportChannel': _reportChannel,
-        'serviceType': _serviceType,
-        'jobType': _jobType,
-        'name': _nameController.text,
-        'phone': _phoneController.text,
-        'building': _building,
-        'floor': _floor,
-        'room': _room,
-        'problemDetail': _problemDetailController.text,
-        'imagePath': _image?.path,
-      };
-      print(formData); // For debugging purposes
-
+      // Show a loading dialog
       showDialog(
         context: context,
+        barrierDismissible: false, // Prevent dismissing by tapping outside
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('สำเร็จ!', style: TextStyle(color: Colors.green)),
-            content: const Text(
-              'ข้อมูลการแจ้งซ่อมถูกส่งเรียบร้อยแล้ว',
-              style: TextStyle(color: Colors.black),
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('กำลังส่งข้อมูล...'),
+              ],
             ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('ตกลง'),
-                onPressed: () {
-                  Navigator.of(context).pop(); // Dismiss the dialog
-                },
-              ),
-            ],
           );
         },
       );
-      // In a real application, you would typically send this data to a backend API.
+
+      // Call the RepairController to submit the data
+      final bool success = await RepairController.submitRepairRequest(
+        name: _nameController.text,
+        phone: _phoneController.text,
+        building: _building!, // These are validated as not null by the form
+        floor: _floor!,       // validators, so we can use !
+        room: _room!,         //
+        problemDetail: _problemDetailController.text,
+        reportDate: DateFormat('yyyy-MM-dd').format(_reportDate!),
+        reportTime: _formatTimeOfDay(_reportTime!),
+        image: _image,
+      );
+
+      Navigator.of(context).pop(); // Dismiss the loading dialog
+
+      if (success) {
+        // Show success dialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('สำเร็จ!', style: TextStyle(color: Colors.green)),
+              content: const Text(
+                'ข้อมูลการแจ้งซ่อมถูกส่งเรียบร้อยแล้ว',
+                style: TextStyle(color: Colors.black),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('ตกลง'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Dismiss the success dialog
+                    // Reset the form fields and state
+                    _formKey.currentState?.reset();
+                    setState(() {
+                      _reportDate = DateTime.now();
+                      _reportTime = TimeOfDay.now();
+                      _building = null;
+                      _floor = null;
+                      _room = null;
+                      _image = null; // Clear selected image
+                      _nameController.clear();
+                      _phoneController.clear();
+                      _problemDetailController.clear();
+                    });
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Show error dialog if submission failed
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text(
+                'เกิดข้อผิดพลาด!',
+                style: TextStyle(color: Colors.red),
+              ),
+              content: const Text(
+                'ไม่สามารถส่งข้อมูลการแจ้งซ่อมได้ กรุณาลองใหม่อีกครั้ง',
+                style: TextStyle(color: Colors.black),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('ปิด'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
+      // Show validation error dialog
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text(
-              'เกิดข้อผิดพลาด!',
-              style: TextStyle(color: Colors.red),
+              'กรอกข้อมูลไม่ครบ!',
+              style: TextStyle(color: Colors.orange),
             ),
             content: const Text(
-              'กรุณากรอกข้อมูลให้ครบถ้วน',
+              'กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน',
               style: TextStyle(color: Colors.black),
             ),
             actions: <Widget>[
@@ -286,7 +333,7 @@ class _RepairScreenState extends State<RepairScreen> {
               _buildCardSection([
                 _buildProblemDetailField(),
                 const SizedBox(height: 24),
-                _buildImagePicker(), // Updated to call the new _buildImagePicker
+                _buildImagePicker(),
                 if (_image != null) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -486,7 +533,7 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 
   /// Builds a common InputDecoration for text fields and dropdowns.
-  InputDecoration _buildInputDecoration(
+   InputDecoration _buildInputDecoration(
     String label, {
     String? hintText,
     Widget? prefixIcon,
