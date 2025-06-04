@@ -17,11 +17,13 @@ class _RepairScreenState extends State<RepairScreen> {
   // MARK: - Controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _problemDetailController = TextEditingController();
+  final TextEditingController _problemDetailController =
+      TextEditingController();
 
   // MARK: - Form Data Fields
-  DateTime? _reportDate;
-  TimeOfDay? _reportTime;
+  // Initialize with current date and time
+  DateTime? _reportDate = DateTime.now();
+  TimeOfDay? _reportTime = TimeOfDay.now();
   DateTime? _repairDate;
   String? _reportChannel;
   String? _serviceType;
@@ -32,9 +34,6 @@ class _RepairScreenState extends State<RepairScreen> {
   XFile? _image;
 
   // MARK: - Dropdown Data Sources
-  static const List<String> _channels = ['โทรศัพท์', 'แอปพลิเคชัน', 'หน้าเคาน์เตอร์'];
-  static const List<String> _services = ['ซ่อมแซม', 'ติดตั้ง'];
-  static const List<String> _jobs = ['ไฟฟ้า', 'ประปา', 'ทั่วไป'];
   static const List<String> _buildings = ['A', 'B', 'C'];
   static const List<String> _floors = ['1', '2', '3', '4', '5'];
   static const List<String> _rooms = ['101', '102', '103', '201', '202'];
@@ -63,7 +62,10 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 
   /// Handles date picking and updates the relevant state variable.
-  Future<void> _pickDate(BuildContext context, void Function(DateTime) onPicked) async {
+  Future<void> _pickDate(
+    BuildContext context,
+    void Function(DateTime) onPicked,
+  ) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -123,10 +125,10 @@ class _RepairScreenState extends State<RepairScreen> {
     }
   }
 
-  /// Handles image picking from the gallery and updates the _image state variable.
-  Future<void> _pickImage() async {
+  /// Handles image picking from the gallery or camera.
+  Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() => _image = pickedFile);
     }
@@ -136,9 +138,15 @@ class _RepairScreenState extends State<RepairScreen> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final Map<String, dynamic> formData = {
-        'reportDate': _reportDate != null ? DateFormat('yyyy-MM-dd').format(_reportDate!) : null,
-        'reportTime': _reportTime != null ? _formatTimeOfDay(_reportTime!) : null,
-        'repairDate': _repairDate != null ? DateFormat('yyyy-MM-dd').format(_repairDate!) : null,
+        'reportDate': _reportDate != null
+            ? DateFormat('yyyy-MM-dd').format(_reportDate!)
+            : null,
+        'reportTime': _reportTime != null
+            ? _formatTimeOfDay(_reportTime!)
+            : null,
+        'repairDate': _repairDate != null
+            ? DateFormat('yyyy-MM-dd').format(_repairDate!)
+            : null,
         'reportChannel': _reportChannel,
         'serviceType': _serviceType,
         'jobType': _jobType,
@@ -152,19 +160,50 @@ class _RepairScreenState extends State<RepairScreen> {
       };
       print(formData); // For debugging purposes
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('กำลังส่งข้อมูลการแจ้งซ่อม...'),
-          backgroundColor: Colors.green,
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('สำเร็จ!', style: TextStyle(color: Colors.green)),
+            content: const Text(
+              'ข้อมูลการแจ้งซ่อมถูกส่งเรียบร้อยแล้ว',
+              style: TextStyle(color: Colors.black),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('ตกลง'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Dismiss the dialog
+                },
+              ),
+            ],
+          );
+        },
       );
       // In a real application, you would typically send this data to a backend API.
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('กรุณากรอกข้อมูลให้ครบถ้วน'),
-          backgroundColor: Colors.red,
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              'เกิดข้อผิดพลาด!',
+              style: TextStyle(color: Colors.red),
+            ),
+            content: const Text(
+              'กรุณากรอกข้อมูลให้ครบถ้วน',
+              style: TextStyle(color: Colors.black),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('ปิด'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
     }
   }
@@ -193,42 +232,57 @@ class _RepairScreenState extends State<RepairScreen> {
               _buildSectionHeader('ข้อมูลการแจ้ง'),
               const SizedBox(height: 12),
               _buildCardSection([
-                _buildDateField('วันที่แจ้งซ่อม', _reportDate, (val) => setState(() => _reportDate = val)),
+                _buildDateField(
+                  'วันที่แจ้งซ่อม',
+                  _reportDate,
+                  (val) => setState(() => _reportDate = val),
+                ),
                 const SizedBox(height: 16),
                 _buildTimeField('เวลาแจ้งซ่อม'),
-                const SizedBox(height: 16),
-                _buildDateField('วันที่เข้าซ่อม (ถ้ามี)', _repairDate, (val) => setState(() => _repairDate = val)),
-              ]),
-              const SizedBox(height: 24),
-
-              _buildSectionHeader('รายละเอียดบริการ'),
-              const SizedBox(height: 12),
-              _buildCardSection([
-                _buildDropdown('ช่องทางแจ้งงาน', _reportChannel, _channels, (val) => setState(() => _reportChannel = val)),
-                const SizedBox(height: 16),
-                _buildDropdown('ชนิดของการบริการ', _serviceType, _services, (val) => setState(() => _serviceType = val)),
-                const SizedBox(height: 16),
-                _buildDropdown('ประเภทงาน', _jobType, _jobs, (val) => setState(() => _jobType = val)),
               ]),
               const SizedBox(height: 24),
 
               _buildSectionHeader('ข้อมูลผู้แจ้ง'),
               const SizedBox(height: 12),
               _buildCardSection([
-                _buildTextField('ชื่อผู้แจ้ง', _nameController, hintText: 'กรุณากรอกชื่อ-นามสกุล'),
+                _buildTextField(
+                  'ชื่อผู้แจ้ง',
+                  _nameController,
+                  hintText: 'กรุณากรอกชื่อ-นามสกุล',
+                ),
                 const SizedBox(height: 16),
-                _buildTextField('เบอร์โทร', _phoneController, keyboardType: TextInputType.phone, hintText: 'เช่น 0812345678'),
+                _buildTextField(
+                  'เบอร์โทร',
+                  _phoneController,
+                  keyboardType: TextInputType.phone,
+                  hintText: 'เช่น 0812345678',
+                ),
               ]),
               const SizedBox(height: 24),
 
               _buildSectionHeader('สถานที่'),
               const SizedBox(height: 12),
               _buildCardSection([
-                _buildDropdown('อาคาร', _building, _buildings, (val) => setState(() => _building = val)),
+                _buildDropdown(
+                  'อาคาร',
+                  _building,
+                  _buildings,
+                  (val) => setState(() => _building = val),
+                ),
                 const SizedBox(height: 16),
-                _buildDropdown('ชั้น', _floor, _floors, (val) => setState(() => _floor = val)),
+                _buildDropdown(
+                  'ชั้น',
+                  _floor,
+                  _floors,
+                  (val) => setState(() => _floor = val),
+                ),
                 const SizedBox(height: 16),
-                _buildDropdown('ห้อง', _room, _rooms, (val) => setState(() => _room = val)),
+                _buildDropdown(
+                  'ห้อง',
+                  _room,
+                  _rooms,
+                  (val) => setState(() => _room = val),
+                ),
               ]),
               const SizedBox(height: 24),
 
@@ -237,10 +291,13 @@ class _RepairScreenState extends State<RepairScreen> {
               _buildCardSection([
                 _buildProblemDetailField(),
                 const SizedBox(height: 24),
-                _buildImagePicker(),
+                _buildImagePicker(), // Updated to call the new _buildImagePicker
                 if (_image != null) ...[
                   const SizedBox(height: 12),
-                  Text('รูปภาพที่เลือก: ${_image!.name}', style: TextStyle(color: Colors.grey.shade600)),
+                  Text(
+                    'รูปภาพที่เลือก: ${_image!.name}',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
                   const SizedBox(height: 8),
                   _buildImagePreview(),
                 ],
@@ -259,34 +316,57 @@ class _RepairScreenState extends State<RepairScreen> {
   // MARK: - Reusable Widget Builders
 
   /// Builds a standard text input field.
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType? keyboardType, String? hintText}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+    String? hintText,
+  }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       decoration: _buildInputDecoration(label, hintText: hintText),
-      validator: (value) => value == null || value.isEmpty ? 'กรุณากรอก $label' : null,
+      validator: (value) =>
+          value == null || value.isEmpty ? 'กรุณากรอก $label' : null,
     );
   }
 
   /// Builds a standard dropdown input field.
-  Widget _buildDropdown(String label, String? value, List<String> items, void Function(String?) onChanged) {
+  Widget _buildDropdown(
+    String label,
+    String? value,
+    List<String> items,
+    void Function(String?) onChanged,
+  ) {
     return DropdownButtonFormField<String>(
       value: value,
       decoration: _buildInputDecoration(label),
-      items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+      items: items
+          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .toList(),
       onChanged: onChanged,
       validator: (value) => value == null ? 'กรุณาเลือก $label' : null,
     );
   }
 
   /// Builds a date input field with a date picker.
-  Widget _buildDateField(String label, DateTime? value, void Function(DateTime) onPicked) {
+  Widget _buildDateField(
+    String label,
+    DateTime? value,
+    void Function(DateTime) onPicked,
+  ) {
     return TextFormField(
       readOnly: true,
       controller: TextEditingController(
         text: value == null ? '' : DateFormat('d MMMM y', 'th').format(value),
       ),
-      decoration: _buildInputDecoration(label, prefixIcon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor)),
+      decoration: _buildInputDecoration(
+        label,
+        prefixIcon: Icon(
+          Icons.calendar_today,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
       onTap: () => _pickDate(context, onPicked),
       validator: (val) => value == null ? 'กรุณาเลือก $label' : null,
     );
@@ -299,7 +379,13 @@ class _RepairScreenState extends State<RepairScreen> {
       controller: TextEditingController(
         text: _reportTime == null ? '' : _formatTimeOfDay(_reportTime!),
       ),
-      decoration: _buildInputDecoration(label, prefixIcon: Icon(Icons.access_time, color: Theme.of(context).primaryColor)),
+      decoration: _buildInputDecoration(
+        label,
+        prefixIcon: Icon(
+          Icons.access_time,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
       onTap: () => _pickTime(context),
       validator: (val) => _reportTime == null ? 'กรุณาเลือก $label' : null,
     );
@@ -312,23 +398,52 @@ class _RepairScreenState extends State<RepairScreen> {
       maxLines: 5,
       decoration: _buildInputDecoration(
         'รายละเอียดของปัญหา',
-        hintText: 'โปรดอธิบายปัญหาที่พบอย่างละเอียด เช่น แอร์ไม่เย็น, ก๊อกน้ำรั่ว, ไฟฟ้าดับ',
+        hintText:
+            'โปรดอธิบายปัญหาที่พบอย่างละเอียด เช่น แอร์ไม่เย็น, ก๊อกน้ำรั่ว, ไฟฟ้าดับ',
       ),
-      validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกรายละเอียดของปัญหา' : null,
+      validator: (value) =>
+          value == null || value.isEmpty ? 'กรุณากรอกรายละเอียดของปัญหา' : null,
     );
   }
 
-  /// Builds the image picker button.
+  /// Builds the image picker button and provides options to use camera or gallery.
   Widget _buildImagePicker() {
     return ElevatedButton.icon(
       icon: const Icon(Icons.camera_alt),
       label: Text(_image == null ? 'แนบรูปภาพประกอบ (ถ้ามี)' : 'เปลี่ยนรูปภาพ'),
-      onPressed: _pickImage,
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.camera_alt),
+                    title: const Text('ถ่ายรูปด้วยกล้อง'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.camera);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.photo_library),
+                    title: const Text('เลือกจากอัลบั้มรูป'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickImage(ImageSource.gallery);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
       style: ElevatedButton.styleFrom(
         minimumSize: const Size.fromHeight(50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         padding: const EdgeInsets.symmetric(vertical: 12),
         backgroundColor: Theme.of(context).colorScheme.secondary,
         foregroundColor: Colors.white,
@@ -376,7 +491,11 @@ class _RepairScreenState extends State<RepairScreen> {
   }
 
   /// Builds a common InputDecoration for text fields and dropdowns.
-  InputDecoration _buildInputDecoration(String label, {String? hintText, Widget? prefixIcon}) {
+  InputDecoration _buildInputDecoration(
+    String label, {
+    String? hintText,
+    Widget? prefixIcon,
+  }) {
     return InputDecoration(
       labelText: label,
       hintText: hintText,
@@ -406,9 +525,7 @@ class _RepairScreenState extends State<RepairScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: children,
-        ),
+        child: Column(children: children),
       ),
     );
   }
