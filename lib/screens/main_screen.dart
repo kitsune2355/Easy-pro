@@ -1,10 +1,14 @@
+// lib/screens/main_screen.dart
 import 'package:easy_pro/screens/history_repair_screen.dart';
 import 'package:easy_pro/screens/home_screen.dart';
-import 'package:easy_pro/screens/notifications_screen.dart' show NotificationsScreen;
+import 'package:easy_pro/screens/notifications_screen.dart'
+    show NotificationsScreen;
 import 'package:easy_pro/screens/profile_screen.dart';
 import 'package:easy_pro/screens/settings_screen.dart';
 import 'package:easy_pro/screens/repair_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Import provider
+import 'package:easy_pro/services/notification_service.dart'; // Import your service
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -22,9 +26,6 @@ class _MainScreenState extends State<MainScreen> {
   late final List<Map<String, dynamic>> _mainDrawerItems;
   late final Map<String, dynamic> _logoutDrawerItem;
 
-  // Added state for notification count
-  int _notificationCount = 3; // Example: 3 unread notifications
-
   @override
   void initState() {
     super.initState();
@@ -37,10 +38,9 @@ class _MainScreenState extends State<MainScreen> {
       const SettingsScreen(),
       const RepairScreen(),
       const HistoryRepairScreen(),
-      const NotificationsScreen(),
+      const NotificationsScreen(), // NotificationsScreen will now fetch its own data
     ];
 
-    // Initialize page titles corresponding to the _pages list
     _pageTitles = [
       'โปรไฟล์',
       'EasyPro',
@@ -81,23 +81,59 @@ class _MainScreenState extends State<MainScreen> {
         );
       },
     };
+
+    // Fetch notifications when MainScreen initializes
+    // Provider.of<NotificationService>(context, listen: false).fetchNotifications();
+    // Use Future.microtask to avoid calling setState during build
+    Future.microtask(
+      () => Provider.of<NotificationService>(
+        context,
+        listen: false,
+      ).fetchNotifications(userId: 'i'),
+    );
   }
 
-  void _onItemTapped(int index) {
+  // เปลี่ยน _onItemTapped ให้เป็น async function
+  void _onItemTapped(int index) async {
     setState(() {
       _selectedIndex = index;
-
       if (index <= 2) {
         _bottomNavIndex = index;
       }
     });
+
+    // เมื่อ navigate ไปที่ NotificationsScreen (index 5) ให้ทำเครื่องหมายแจ้งเตือนที่ยังไม่ได้อ่านทั้งหมดว่าอ่านแล้ว
+    if (index == 5) {
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+
+      // สร้างรายการ Future สำหรับการเรียก markNotificationAsRead แต่ละครั้ง
+      final List<Future<void>> markAsReadFutures = [];
+      notificationService.notifications
+          .where((n) => !n.isRead)
+          .forEach(
+            (n) {
+              // เพิ่ม Future เข้าไปในลิสต์
+              markAsReadFutures.add(notificationService.markAsRead(n.user_id));
+            },
+          );
+
+      // **สำคัญมาก:** รอให้การเรียก markNotificationAsRead ทั้งหมดเสร็จสิ้น
+      await Future.wait(markAsReadFutures);
+
+      // **สำคัญมาก:** หลังจากทำเครื่องหมายว่าอ่านแล้ว ให้ดึงข้อมูลการแจ้งเตือนล่าสุดจากเซิร์ฟเวอร์อีกครั้ง
+      // เพื่อให้แน่ใจว่าสถานะ isRead ถูกอัปเดตและ UI จะแสดงผลได้อย่างถูกต้องแม้จะ hot reload
+      await notificationService.fetchNotifications(userId: 'i');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the NotificationService for changes
+    final notificationService = Provider.of<NotificationService>(context);
+    final int unreadCount = notificationService.unreadNotificationCount;
+
     return Scaffold(
       appBar: AppBar(
-        // Dynamically set the title based on the selected index
         title: Text(
           _pageTitles[_selectedIndex],
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
@@ -106,12 +142,10 @@ class _MainScreenState extends State<MainScreen> {
         foregroundColor: Colors.white,
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
-        leading: _selectedIndex == 3 || _selectedIndex == 4 || _selectedIndex == 5
+        leading:
+            _selectedIndex == 3 || _selectedIndex == 4 || _selectedIndex == 5
             ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                 onPressed: () {
                   _onItemTapped(_bottomNavIndex);
                 },
@@ -124,12 +158,10 @@ class _MainScreenState extends State<MainScreen> {
                 icon: const Icon(Icons.notifications_none, color: Colors.white),
                 onPressed: () {
                   _onItemTapped(5); // Navigate to notifications screen
-                  setState(() {
-                    _notificationCount = 0; // Clear notifications when accessed
-                  });
+                  // The marking as read logic is now in _onItemTapped
                 },
               ),
-              if (_notificationCount > 0)
+              if (unreadCount > 0) // Use unreadCount from service
                 Positioned(
                   right: 8,
                   top: 8,
@@ -144,11 +176,8 @@ class _MainScreenState extends State<MainScreen> {
                       minHeight: 16,
                     ),
                     child: Text(
-                      '$_notificationCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                      ),
+                      '$unreadCount', // Display unreadCount
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -176,8 +205,11 @@ class _MainScreenState extends State<MainScreen> {
                       child: CircleAvatar(
                         radius: 36,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.person,
-                            size: 40, color: Theme.of(context).primaryColor),
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -189,21 +221,26 @@ class _MainScreenState extends State<MainScreen> {
                           Text(
                             'สมชาย ใจดี',
                             style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height: 6),
                           Text(
                             'ตำแหน่ง: ช่างซ่อม',
-                            style:
-                                TextStyle(fontSize: 13, color: Colors.white70),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white70,
+                            ),
                           ),
                           SizedBox(height: 3),
                           Text(
                             'รหัสพนักงาน: 123456789',
-                            style:
-                                TextStyle(fontSize: 13, color: Colors.white70),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white70,
+                            ),
                           ),
                         ],
                       ),
@@ -218,7 +255,9 @@ class _MainScreenState extends State<MainScreen> {
                     ..._mainDrawerItems.map((item) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 4.0),
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
                         child: Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
@@ -240,8 +279,9 @@ class _MainScreenState extends State<MainScreen> {
                             onTap: () {
                               item['action']();
                             },
-                            splashColor:
-                                Theme.of(context).primaryColor.withOpacity(0.2),
+                            splashColor: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.2),
                           ),
                         ),
                       );
@@ -250,8 +290,10 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
                 child: Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -317,9 +359,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.person_outline,
-                ),
+                icon: Icon(Icons.person_outline),
                 activeIcon: Icon(Icons.person),
                 label: 'โปรไฟล์',
               ),

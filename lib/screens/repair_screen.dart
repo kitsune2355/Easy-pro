@@ -162,6 +162,7 @@ class _RepairScreenState extends State<RepairScreen> {
         reportDate: DateFormat('yyyy-MM-dd').format(_reportDate!),
         reportTime: _formatTimeOfDay(_reportTime!),
         image: _image,
+        context: context,
       );
 
       Navigator.of(context).pop(); // Dismiss the loading dialog
@@ -297,7 +298,7 @@ class _RepairScreenState extends State<RepairScreen> {
                   'เบอร์โทร',
                   _phoneController,
                   keyboardType: TextInputType.phone,
-                  hintText: 'เช่น 0812345678',
+                  hintText: 'เช่น087444 0812345678',
                 ),
               ]),
               const SizedBox(height: 24),

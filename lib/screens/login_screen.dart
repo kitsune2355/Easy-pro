@@ -129,7 +129,7 @@ class _LoginButton extends StatelessWidget {
       height: 56, // Slightly taller button
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: const Color.fromARGB(255, 15, 77, 119),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12), // Softer rounded corners
@@ -300,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.6),
+      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.98),
       body: Stack(
         children: [
           const _BackgroundShapes(), // Modernized background
