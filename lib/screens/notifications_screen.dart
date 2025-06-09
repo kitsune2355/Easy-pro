@@ -84,7 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         color: notification.isRead ? Colors.grey : Theme.of(context).primaryColor,
                       ),
                       title: Text(
-                        notification.title,
+                        '${notification.title} ${notification.desc}',
                         style: TextStyle(
                           fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
                           color: notification.isRead ? Colors.grey.shade700 : Colors.black87,
@@ -94,7 +94,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${notification.desc ?? 'ไม่ระบุ'} ที่อาคาร ${notification.building ?? 'ไม่ระบุ'} ชั้น ${notification.floor ?? 'ไม่ระบุ'} ห้อง ${notification.room ?? 'ไม่ระบุ'}',
+                            'อาคาร ${notification.building ?? 'ไม่ระบุ'} ชั้น ${notification.floor ?? 'ไม่ระบุ'} ห้อง ${notification.room ?? 'ไม่ระบุ'}',
                             style: TextStyle(
                               color: notification.isRead ? Colors.grey.shade600 : Colors.black54,
                             ),

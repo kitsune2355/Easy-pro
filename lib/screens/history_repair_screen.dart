@@ -112,7 +112,7 @@ class _HistoryRepairScreenState extends State<HistoryRepairScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      item.displayTitle, // Use the displayTitle getter
+                      '#${item.id} ${item.displayTitle}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
