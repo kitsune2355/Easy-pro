@@ -1,10 +1,8 @@
-// lib/screens/home_screen.dart
-import 'package:easy_pro/models/recent_activity.dart';
+import 'package:easy_pro/models/repair_history_item.dart';
 import 'package:easy_pro/services/repair_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
-// --- Mock Data Models (JobStatistic remains here or can be moved too) ---
 class JobStatistic {
   final String title;
   final int value;
@@ -34,7 +32,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<RecentActivity> _recentActivities = [];
+  List<RepairHistoryItem> _recentActivities = [];
   bool _isLoading = true;
   String? _error;
   List<JobStatistic> _jobStatistics = [];
@@ -45,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchRecentActivities();
   }
 
-  // --- Data Fetching Method using RepairService ---
   Future<void> _fetchRecentActivities() async {
     setState(() {
       _isLoading = true;
@@ -58,19 +55,17 @@ class _HomeScreenState extends State<HomeScreen> {
         _recentActivities = fetchedActivities;
         _isLoading = false;
 
-        // คำนวณ _jobStatistics ใหม่ตรงนี้ หลังจาก _recentActivities ถูกอัปเดต
         _jobStatistics = [
           JobStatistic(
             title: 'งานทั้งหมด',
-            value:
-                _recentActivities.length, // ใช้ค่าจาก _recentActivities.length
+            value: _recentActivities.length,
             icon: Icons.receipt_long_rounded,
             color: Colors.blue.shade600,
           ),
           JobStatistic(
             title: 'รอดำเนินการ',
             value: _recentActivities
-                .where((activity) => activity.status == 'รอดำเนินการ')
+                .where((activity) => activity.statusText == 'รอดำเนินการ')
                 .length,
             icon: Icons.pending_actions_rounded,
             color: Colors.orange.shade600,
@@ -78,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
           JobStatistic(
             title: 'เสร็จสิ้น',
             value: _recentActivities
-                .where((activity) => activity.status == 'เสร็จสิ้น')
+                .where((activity) => activity.statusText == 'เสร็จสิ้น')
                 .length,
             icon: Icons.task_alt_rounded,
             color: Colors.green.shade600,
@@ -89,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
-        // หากเกิด error ก็ควรเคลียร์หรือตั้งค่าเริ่มต้นให้กับ _jobStatistics ด้วย
         _jobStatistics = [];
       });
     }
@@ -105,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Statistics Section (No changes) ---
           Text(
             'ภาพรวมงานซ่อม',
             style: textTheme.titleLarge?.copyWith(
@@ -147,8 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           const SizedBox(height: 32),
-
-          // --- Main Actions Section (No changes) ---
           Text(
             'ดำเนินการด่วน',
             style: textTheme.titleLarge?.copyWith(
@@ -215,10 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-
           const SizedBox(height: 32),
-
-          // --- Recent Activities Section ---
           Text(
             'กิจกรรมล่าสุด',
             style: textTheme.titleLarge?.copyWith(
@@ -240,7 +228,6 @@ class _HomeScreenState extends State<HomeScreen> {
         : Scaffold(backgroundColor: Colors.grey[50], body: bodyContent);
   }
 
-  /// Helper widget for displaying a single statistic card.
   Widget _buildStatisticCard(
     BuildContext context, {
     required String title,
@@ -270,10 +257,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -284,10 +271,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   value,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    fontSize: 24,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontSize: 24,
+                      ),
                 ),
               ),
             ),
@@ -297,7 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Helper widget for main action buttons.
   Widget _buildActionButton(
     BuildContext context, {
     required String title,
@@ -321,8 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors:
-                    gradientColors ??
-                    [Colors.teal.shade600, Colors.teal.shade400],
+                    gradientColors ?? [Colors.teal.shade600, Colors.teal.shade400],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -346,11 +331,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     title,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                      fontSize: 18,
-                    ),
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                          fontSize: 18,
+                        ),
                   ),
                 ),
               ],
@@ -361,7 +346,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Helper widget for the card containing recent activities.
   Widget _buildRecentActivitiesCard() {
     return Card(
       elevation: 4,
@@ -372,75 +356,74 @@ class _HomeScreenState extends State<HomeScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-            ? Center(
-                child: Text(
-                  'Error: $_error',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              )
-            : _recentActivities.isEmpty
-            ? const Center(
-                child: Text(
-                  'ไม่พบกิจกรรมล่าสุด.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              )
-            : Column(
-                children: [
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _recentActivities.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 28,
-                      thickness: 0.8,
-                      color: Colors.grey.shade300,
+                ? Center(
+                    child: Text(
+                      'Error: $_error',
+                      style: const TextStyle(color: Colors.red),
                     ),
-                    itemBuilder: (context, index) {
-                      final activity = _recentActivities[index];
-                      return _buildActivityTile(
-                        icon: Icons.build_circle_rounded,
-                        task: activity.title,
-                        status: activity.status,
-                        time: "${activity.date}, ${activity.time}",
-                        statusColor: activity.statusColor,
-                        place:
-                            "${activity.building} ชั้น ${activity.floor} ห้อง ${activity.room}",
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        widget.onNavigateToHistory?.call();
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                  )
+                : _recentActivities.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'ไม่พบกิจกรรมล่าสุด.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      )
+                    : Column(
+                        children: [
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _recentActivities.length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 28,
+                              thickness: 0.8,
+                              color: Colors.grey.shade300,
+                            ),
+                            itemBuilder: (context, index) {
+                              final activity = _recentActivities[index];
+                              return _buildActivityTile(
+                                icon: Icons.build_circle_rounded,
+                                task: activity.displayTitle,
+                                statusText: activity.statusText,
+                                time: activity.fullReportDateTime,
+                                statusColor: activity.statusColor,
+                                place: activity.displayPlace,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                widget.onNavigateToHistory?.call();
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'ดูทั้งหมด',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'ดูทั้งหมด',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
@@ -449,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildActivityTile({
     required IconData icon,
     required String task,
-    required String status,
+    required String statusText,
     required String time,
     required Color statusColor,
     required String place,
@@ -493,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
+              color: statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: statusColor.withOpacity(0.3),
@@ -501,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             child: Text(
-              status,
+              statusText,
               style: TextStyle(
                 color: statusColor,
                 fontWeight: FontWeight.bold,
