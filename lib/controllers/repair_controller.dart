@@ -1,3 +1,4 @@
+import 'package:easy_pro/models/recent_activity.dart';
 import 'package:easy_pro/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -76,5 +77,47 @@ class RepairController {
       print('Error submitting repair request: $e');
     }
     return false;
+  }
+}
+
+class RepairAllController {
+
+  // เมธอดสำหรับเข้าสู่ระบบ (อันเดิมของคุณ)
+  static Future<bool> login(String username, String password) async {
+    final response = await ApiService.post(
+      'login.php', // เปลี่ยนชื่อไฟล์เป็น login.php ถ้ามี
+      body: {'username': username, 'password': password},
+    );
+
+    if (response is Map && response.containsKey('status')) {
+      if (response['status'] == 'success') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // --- เมธอดใหม่สำหรับดึงข้อมูลการซ่อมแซมทั้งหมด ---
+  static Future<List<RecentActivity>> fetchAllRepairs() async {
+    try {
+      final responseData = await ApiService.get('get_all_repair_requests.php'); // ใช้เมธอด GET
+
+      if (responseData is Map && responseData.containsKey('status')) {
+        if (responseData['status'] == 'success') {
+          final List<dynamic> data = responseData['data'];
+          // แปลง List<dynamic> เป็น List<RecentActivity>
+          return data.map((json) => RecentActivity.fromJson(json)).toList();
+        } else {
+          // กรณี API คืนค่า status เป็น error
+          throw Exception(responseData['message'] ?? 'Failed to fetch all repairs from API.');
+        }
+      } else {
+        // กรณี responseData ไม่เป็น Map หรือไม่มี key 'status'
+        throw Exception('Invalid response format from API.');
+      }
+    } catch (e) {
+      // ดักจับข้อผิดพลาดที่เกิดขึ้นระหว่างการเรียก API
+      throw Exception('Error fetching all repairs: $e');
+    }
   }
 }

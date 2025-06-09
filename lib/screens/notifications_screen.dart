@@ -94,7 +94,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ปัญหา: ${notification.desc ?? 'ไม่ระบุ'} ที่อาคาร ${notification.building ?? 'ไม่ระบุ'} ชั้น ${notification.floor ?? 'ไม่ระบุ'} ห้อง ${notification.room ?? 'ไม่ระบุ'}',
+                            '${notification.desc ?? 'ไม่ระบุ'} ที่อาคาร ${notification.building ?? 'ไม่ระบุ'} ชั้น ${notification.floor ?? 'ไม่ระบุ'} ห้อง ${notification.room ?? 'ไม่ระบุ'}',
                             style: TextStyle(
                               color: notification.isRead ? Colors.grey.shade600 : Colors.black54,
                             ),

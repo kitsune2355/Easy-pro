@@ -1,7 +1,10 @@
+// lib/screens/home_screen.dart
+import 'package:easy_pro/models/recent_activity.dart';
+import 'package:easy_pro/services/repair_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; // Import for Cupertino widgets
+import 'package:flutter/cupertino.dart';
 
-// --- Mock Data Models ---
+// --- Mock Data Models (JobStatistic remains here or can be moved too) ---
 class JobStatistic {
   final String title;
   final int value;
@@ -16,26 +19,7 @@ class JobStatistic {
   });
 }
 
-// Re-defining RecentActivity to match the structure of your HistoryRepairItem
-class RecentActivity {
-  final String date;
-  final String title;
-  final String detail;
-  final String status;
-  final String time;
-  final Color statusColor; // Added for convenience
-
-  RecentActivity({
-    required this.date,
-    required this.title,
-    required this.detail,
-    required this.status,
-    required this.time,
-    required this.statusColor,
-  });
-}
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final VoidCallback? onNavigateToRepair;
   final VoidCallback? onNavigateToHistory;
 
@@ -45,71 +29,71 @@ class HomeScreen extends StatelessWidget {
     this.onNavigateToHistory,
   });
 
-  // --- Mock Data ---
-  List<JobStatistic> get _jobStatistics => [
-    JobStatistic(
-      title: 'งานทั้งหมด',
-      value: 150,
-      icon: Icons.receipt_long_rounded,
-      color: Colors.blue.shade600,
-    ),
-    JobStatistic(
-      title: 'รอดำเนินการ',
-      value: 25,
-      icon: Icons.pending_actions_rounded,
-      color: Colors.orange.shade600,
-    ),
-    JobStatistic(
-      title: 'เสร็จสิ้น',
-      value: 125,
-      icon: Icons.task_alt_rounded,
-      color: Colors.green.shade600,
-    ),
-  ];
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-  // Updated _recentActivities to reflect HistoryRepairItem data
-  List<RecentActivity> get _recentActivities => [
-    RecentActivity(
-      date: '2567-05-30',
-      title: 'ซ่อมเครื่องปรับอากาศ',
-      detail: 'แอร์ไม่เย็น มีน้ำหยด',
-      status: 'เสร็จสิ้น',
-      time: '14:30 น.',
-      statusColor: Colors.green.shade600,
-    ),
-    RecentActivity(
-      date: '2567-05-28',
-      title: 'เปลี่ยนหลอดไฟ',
-      detail: 'ไฟห้องประชุมเสีย',
-      status: 'รอดำเนินการ',
-      time: '10:00 น.',
-      statusColor: Colors.orange.shade600,
-    ),
-    RecentActivity(
-      date: '2567-05-25',
-      title: 'แก้ไขน้ำรั่ว',
-      detail: 'น้ำรั่วจากเพดานห้องน้ำ',
-      status: 'เสร็จสิ้น',
-      time: '09:00 น.',
-      statusColor: Colors.green.shade600,
-    ),
-    RecentActivity(
-      date: '2567-05-22',
-      title: 'ติดตั้งเต้ารับใหม่',
-      detail: 'ติดตั้งเต้ารับเพิ่มในห้องทำงาน',
-      status: 'รอดำเนินการ',
-      time: '11:00 น.',
-      statusColor: Colors.orange.shade600,
-    ),
-    RecentActivity(
-      date: '2567-05-20',
-      title: 'บำรุงรักษาระบบเครือข่าย',
-      detail: 'ตรวจสอบและแก้ไขปัญหาอินเทอร์เน็ต',
-      status: 'เสร็จสิ้น',
-      time: '16:00 น.',
-      statusColor: Colors.green.shade600,
-    ),
-  ];
+class _HomeScreenState extends State<HomeScreen> {
+  List<RecentActivity> _recentActivities = [];
+  bool _isLoading = true;
+  String? _error;
+  List<JobStatistic> _jobStatistics = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecentActivities();
+  }
+
+  // --- Data Fetching Method using RepairService ---
+  Future<void> _fetchRecentActivities() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final fetchedActivities = await RepairService.fetchAllRepairRequests();
+      setState(() {
+        _recentActivities = fetchedActivities;
+        _isLoading = false;
+
+        // คำนวณ _jobStatistics ใหม่ตรงนี้ หลังจาก _recentActivities ถูกอัปเดต
+        _jobStatistics = [
+          JobStatistic(
+            title: 'งานทั้งหมด',
+            value:
+                _recentActivities.length, // ใช้ค่าจาก _recentActivities.length
+            icon: Icons.receipt_long_rounded,
+            color: Colors.blue.shade600,
+          ),
+          JobStatistic(
+            title: 'รอดำเนินการ',
+            value: _recentActivities
+                .where((activity) => activity.status == 'รอดำเนินการ')
+                .length,
+            icon: Icons.pending_actions_rounded,
+            color: Colors.orange.shade600,
+          ),
+          JobStatistic(
+            title: 'เสร็จสิ้น',
+            value: _recentActivities
+                .where((activity) => activity.status == 'เสร็จสิ้น')
+                .length,
+            icon: Icons.task_alt_rounded,
+            color: Colors.green.shade600,
+          ),
+        ];
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+        // หากเกิด error ก็ควรเคลียร์หรือตั้งค่าเริ่มต้นให้กับ _jobStatistics ด้วย
+        _jobStatistics = [];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +105,7 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Statistics Section ---
+          // --- Statistics Section (No changes) ---
           Text(
             'ภาพรวมงานซ่อม',
             style: textTheme.titleLarge?.copyWith(
@@ -133,14 +117,11 @@ class HomeScreen extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               int crossAxisCount = 3;
-              double childAspectRatio = 0.8;
               if (constraints.maxWidth > 600) {
                 crossAxisCount = 6;
-                childAspectRatio = 1.0;
               }
               if (constraints.maxWidth > 900) {
                 crossAxisCount = 6;
-                childAspectRatio = 1.0;
               }
               return GridView.builder(
                 shrinkWrap: true,
@@ -150,7 +131,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 1.0,
                   mainAxisSpacing: 1.0,
-                  childAspectRatio: childAspectRatio,
+                  childAspectRatio: 1.0,
                 ),
                 itemBuilder: (context, index) {
                   final stat = _jobStatistics[index];
@@ -167,7 +148,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // --- Main Actions Section ---
+          // --- Main Actions Section (No changes) ---
           Text(
             'ดำเนินการด่วน',
             style: textTheme.titleLarge?.copyWith(
@@ -194,14 +175,14 @@ class HomeScreen extends StatelessWidget {
                 {
                   'title': 'แจ้งซ่อม',
                   'icon': Icons.build_circle_outlined,
-                  'onTap': onNavigateToRepair,
+                  'onTap': widget.onNavigateToRepair,
                   'color': Colors.teal.shade600,
                   'gradient': [const Color(0xFF006289), Colors.teal.shade400],
                 },
                 {
                   'title': 'ประวัติ',
                   'icon': Icons.access_time_filled_rounded,
-                  'onTap': onNavigateToHistory,
+                  'onTap': widget.onNavigateToHistory,
                   'color': Colors.deepPurple.shade600,
                   'gradient': [
                     const Color(0xFFB13579),
@@ -388,62 +369,78 @@ class HomeScreen extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _recentActivities.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 28,
-                thickness: 0.8,
-                color: Colors.grey.shade300,
-              ),
-              itemBuilder: (context, index) {
-                final activity = _recentActivities[index];
-                // Pass a generic icon, or map based on title/detail if specific icons are needed
-                return _buildActivityTile(
-                  // Use a generic icon for now, or you can add an icon property to RecentActivity
-                  icon: Icons.build_circle_rounded, // Generic repair icon
-                  task:
-                      activity.title, // Use title for the main task description
-                  status: activity.status,
-                  time:
-                      "${activity.date}, ${activity.time}", // Combine date and time
-                  statusColor: activity.statusColor,
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Navigate to full activities list
-                  onNavigateToHistory
-                      ?.call(); // Use the callback to navigate to history
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
                 child: Text(
-                  'ดูทั้งหมด',
+                  'Error: $_error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              )
+            : _recentActivities.isEmpty
+            ? const Center(
+                child: Text(
+                  'ไม่พบกิจกรรมล่าสุด.',
                   style: TextStyle(
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+              )
+            : Column(
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _recentActivities.length,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 28,
+                      thickness: 0.8,
+                      color: Colors.grey.shade300,
+                    ),
+                    itemBuilder: (context, index) {
+                      final activity = _recentActivities[index];
+                      return _buildActivityTile(
+                        icon: Icons.build_circle_rounded,
+                        task: activity.title,
+                        status: activity.status,
+                        time: "${activity.date}, ${activity.time}",
+                        statusColor: activity.statusColor,
+                        place:
+                            "${activity.building} ชั้น ${activity.floor} ห้อง ${activity.room}",
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        widget.onNavigateToHistory?.call();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'ดูทั้งหมด',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -455,6 +452,7 @@ class HomeScreen extends StatelessWidget {
     required String status,
     required String time,
     required Color statusColor,
+    required String place,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -478,6 +476,11 @@ class HomeScreen extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  place,
+                  style: const TextStyle(fontSize: 15, color: Colors.black45),
                 ),
                 const SizedBox(height: 6),
                 Text(
