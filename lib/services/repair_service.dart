@@ -1,7 +1,10 @@
-import 'package:easy_pro/models/repair_history_item.dart'; // Import the new class
+import 'package:easy_pro/models/repair_history_item.dart';
 import 'package:easy_pro/services/api_service.dart';
+import 'package:flutter/material.dart';
 
-class RepairService {
+// เปลี่ยน RepairService ให้เป็น ChangeNotifier
+class RepairService extends ChangeNotifier {
+  // เมธอด login อาจจะยังคงเป็น static ก็ได้หากไม่ได้จัดการ state ที่เกี่ยวข้องกับ Provider
   static Future<bool> login(String username, String password) async {
     try {
       final response = await ApiService.post(
@@ -21,22 +24,45 @@ class RepairService {
     }
   }
 
-  static Future<List<RepairHistoryItem>> fetchAllRepairRequests() async {
+  List<RepairHistoryItem> _allRepairRequests = [];
+  List<RepairHistoryItem> get allRepairRequests => _allRepairRequests; // Getter สำหรับข้อมูล
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _error;
+  String? get error => _error;
+
+  // ลบ static ออกจาก fetchAllRepairRequests
+  Future<void> fetchAllRepairRequests() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners(); // แจ้งเตือนว่ากำลังโหลด
+
     try {
       final responseData = await ApiService.get('get_all_repair.php');
 
       if (responseData is Map && responseData.containsKey('status')) {
         if (responseData['status'] == 'success') {
           final List<dynamic> data = responseData['data'];
-          return data.map((json) => RepairHistoryItem.fromJson(json)).toList();
+          _allRepairRequests = data.map((json) => RepairHistoryItem.fromJson(json)).toList();
         } else {
-          throw Exception(responseData['message'] ?? 'Failed to load repair requests from API.');
+          _error = responseData['message'] ?? 'Failed to load repair requests from API.';
+          throw Exception(_error); // โยน Exception เพื่อให้ catch block จัดการ
         }
       } else {
-        throw Exception('Invalid response format from API.');
+        _error = 'Invalid response format from API.';
+        throw Exception(_error); // โยน Exception เพื่อให้ catch block จัดการ
       }
     } catch (e) {
-      throw Exception('Error fetching all repair requests: $e');
+      _error = e.toString().replaceFirst('Exception: ', '');
+      _allRepairRequests = []; // ล้างข้อมูลหากเกิดข้อผิดพลาด
+    } finally {
+      _isLoading = false;
+      notifyListeners(); // แจ้งเตือนเมื่อการโหลดเสร็จสิ้น (ไม่ว่าจะสำเร็จหรือล้มเหลว)
     }
   }
+
+  // หากมีเมธอดอื่นๆ ที่ต้องการให้ Provider จัดการ ก็ให้ลบ static ออกเช่นกัน
+  // และเรียก notifyListeners() หลังจากมีการเปลี่ยนแปลงข้อมูลภายในคลาส
 }

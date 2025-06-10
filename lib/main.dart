@@ -1,5 +1,6 @@
 import 'package:easy_pro/screens/main_screen.dart';
 import 'package:easy_pro/services/notification_service.dart';
+import 'package:easy_pro/services/repair_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
@@ -9,8 +10,12 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => NotificationService(), // Provide NotificationService
+    // Use MultiProvider when you have more than one ChangeNotifierProvider
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => NotificationService()),
+        ChangeNotifierProvider(create: (context) => RepairService()), // Add RepairService here
+      ],
       child: const EasyProApp(),
     ),
   );

@@ -1,7 +1,13 @@
+// lib/screens/home_screen.dart
+
 import 'package:easy_pro/models/repair_history_item.dart';
-import 'package:easy_pro/services/repair_service.dart';
+import 'package:easy_pro/services/repair_service.dart'; // Import RepairService
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart'; // เพิ่ม import provider
+
+// ยังคงใช้ GlobalKey<HomeScreenState> เหมือนเดิม
+final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 
 class JobStatistic {
   final String title;
@@ -28,43 +34,58 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<RepairHistoryItem> _recentActivities = [];
-  bool _isLoading = true;
-  String? _error;
-  List<JobStatistic> _jobStatistics = [];
+class HomeScreenState extends State<HomeScreen> {
+  // ไม่ต้องมี _recentActivities, _isLoading, _error, _jobStatistics ที่เป็น State ของ Widget โดยตรงแล้ว
+  // เพราะจะดึงจาก RepairService ผ่าน Provider แทน
+  List<JobStatistic> _jobStatistics = []; // เก็บแค่ JobStatistic ที่คำนวณจากข้อมูลที่ได้มา
 
   @override
   void initState() {
     super.initState();
-    _fetchRecentActivities();
+    // ไม่ต้องเรียก _fetchRecentActivities() ที่นี่แล้ว เพราะ refreshData() จะทำแทน
   }
 
-  Future<void> _fetchRecentActivities() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  // เมธอด refreshData จะไปสั่งให้ RepairService ดึงข้อมูล
+  Future<void> refreshData() async {
+    // เข้าถึง instance ของ RepairService ผ่าน Provider
+    await Provider.of<RepairService>(context, listen: false).fetchAllRepairRequests();
+  }
 
-    try {
-      final fetchedActivities = await RepairService.fetchAllRepairRequests();
-      setState(() {
-        _recentActivities = fetchedActivities;
-        _isLoading = false;
+  // เมธอดนี้จะหายไป หรือเปลี่ยนไปเป็นการคำนวณ JobStatistic จากข้อมูลใน RepairService
+  // หรืออาจจะยังคงอยู่ แต่เปลี่ยน logic ภายใน
+  // ขอแนะนำให้ลบออก แล้วให้ build method อ่านค่าจาก Provider โดยตรง
+  // และคำนวณ JobStatistic ใน build หรือใน Consumer/Selector
+  // หรืออีกทางคือให้ RepairService คำนวณและเก็บค่า JobStatistic ไว้เอง
+
+  // หากต้องการให้ JobStatistic อัปเดตเมื่อข้อมูลมา, เราจะใช้ Consumer หรือ Selector ใน build method แทน
+  // เพื่อให้ UI อัปเดตเมื่อ RepairService แจ้งเตือน
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+
+    // ใช้ Consumer หรือ Selector เพื่อ listen การเปลี่ยนแปลงของ RepairService
+    return Consumer<RepairService>(
+      builder: (context, repairService, child) {
+        // คำนวณ JobStatistic ที่นี่ หรือให้ RepairService เตรียมไว้ให้
+        final List<RepairHistoryItem> recentActivities = repairService.allRepairRequests;
+        final bool isLoading = repairService.isLoading;
+        final String? error = repairService.error;
 
         _jobStatistics = [
           JobStatistic(
             title: 'งานทั้งหมด',
-            value: _recentActivities.length,
+            value: recentActivities.length,
             icon: Icons.receipt_long_rounded,
             color: Colors.blue.shade600,
           ),
           JobStatistic(
             title: 'รอดำเนินการ',
-            value: _recentActivities
+            value: recentActivities
                 .where((activity) => activity.statusText == 'รอดำเนินการ')
                 .length,
             icon: Icons.pending_actions_rounded,
@@ -72,160 +93,164 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           JobStatistic(
             title: 'เสร็จสิ้น',
-            value: _recentActivities
+            value: recentActivities
                 .where((activity) => activity.statusText == 'เสร็จสิ้น')
                 .length,
             icon: Icons.task_alt_rounded,
             color: Colors.green.shade600,
           ),
         ];
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
-        _isLoading = false;
-        _jobStatistics = [];
-      });
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final bool isIOS = Theme.of(context).platform == TargetPlatform.iOS;
-
-    final Widget bodyContent = SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'ภาพรวมงานซ่อม',
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              int crossAxisCount = 3;
-              if (constraints.maxWidth > 600) {
-                crossAxisCount = 6;
-              }
-              if (constraints.maxWidth > 900) {
-                crossAxisCount = 6;
-              }
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _jobStatistics.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 1.0,
-                  mainAxisSpacing: 1.0,
-                  childAspectRatio: 1.0,
+        final Widget bodyContent = SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ภาพรวมงานซ่อม',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
                 ),
-                itemBuilder: (context, index) {
-                  final stat = _jobStatistics[index];
-                  return _buildStatisticCard(
-                    context,
-                    title: stat.title,
-                    value: stat.value.toString(),
-                    icon: stat.icon,
-                    color: stat.color,
+              ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount = 3;
+                  if (constraints.maxWidth > 600) {
+                    crossAxisCount = 6;
+                  }
+                  if (constraints.maxWidth > 900) {
+                    crossAxisCount = 6;
+                  }
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _jobStatistics.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 1.0,
+                      mainAxisSpacing: 1.0,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemBuilder: (context, index) {
+                      final stat = _jobStatistics[index];
+                      return _buildStatisticCard(
+                        context,
+                        title: stat.title,
+                        value: stat.value.toString(),
+                        icon: stat.icon,
+                        color: stat.color,
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'ดำเนินการด่วน',
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              int crossAxisCount = 2;
-              double childAspectRatio = 1.2;
-
-              if (constraints.maxWidth > 600) {
-                crossAxisCount = 3;
-                childAspectRatio = 1.0;
-              }
-              if (constraints.maxWidth > 900) {
-                crossAxisCount = 4;
-                childAspectRatio = 1.0;
-              }
-
-              final actions = [
-                {
-                  'title': 'แจ้งซ่อม',
-                  'icon': Icons.build_circle_outlined,
-                  'onTap': widget.onNavigateToRepair,
-                  'color': Colors.teal.shade600,
-                  'gradient': [const Color(0xFF006289), Colors.teal.shade400],
-                },
-                {
-                  'title': 'ประวัติ',
-                  'icon': Icons.access_time_filled_rounded,
-                  'onTap': widget.onNavigateToHistory,
-                  'color': Colors.deepPurple.shade600,
-                  'gradient': [
-                    const Color(0xFFB13579),
-                    Colors.deepPurple.shade400,
-                  ],
-                },
-              ];
-
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: actions.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  childAspectRatio: childAspectRatio,
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'ดำเนินการด่วน',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
                 ),
-                itemBuilder: (context, index) {
-                  final action = actions[index];
-                  return _buildActionButton(
-                    context,
-                    title: action['title'] as String,
-                    icon: action['icon'] as IconData,
-                    onTap: action['onTap'] as VoidCallback,
-                    color: action['color'] as Color,
-                    gradientColors: action['gradient'] as List<Color>,
+              ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount = 2;
+                  double childAspectRatio = 1.2;
+
+                  if (constraints.maxWidth > 600) {
+                    crossAxisCount = 3;
+                    childAspectRatio = 1.0;
+                  }
+                  if (constraints.maxWidth > 900) {
+                    crossAxisCount = 4;
+                    childAspectRatio = 1.0;
+                  }
+
+                  final actions = [
+                    {
+                      'title': 'แจ้งซ่อม',
+                      'icon': Icons.build_circle_outlined,
+                      'onTap': widget.onNavigateToRepair,
+                      'color': Colors.teal.shade600,
+                      'gradient': [const Color(0xFF006289), Colors.teal.shade400],
+                    },
+                    {
+                      'title': 'ประวัติ',
+                      'icon': Icons.access_time_filled_rounded,
+                      'onTap': widget.onNavigateToHistory,
+                      'color': Colors.deepPurple.shade600,
+                      'gradient': [
+                        const Color(0xFFB13579),
+                        Colors.deepPurple.shade400,
+                      ],
+                    },
+                  ];
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: actions.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16.0,
+                      mainAxisSpacing: 16.0,
+                      childAspectRatio: childAspectRatio,
+                    ),
+                    itemBuilder: (context, index) {
+                      final action = actions[index];
+                      return _buildActionButton(
+                        context,
+                        title: action['title'] as String,
+                        icon: action['icon'] as IconData,
+                        onTap: action['onTap'] as VoidCallback,
+                        color: action['color'] as Color,
+                        gradientColors: action['gradient'] as List<Color>,
+                      );
+                    },
                   );
                 },
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'กิจกรรมล่าสุด',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 16),
+              // ส่งข้อมูลที่ได้จาก provider ไปยัง _buildRecentActivitiesCard
+              _buildRecentActivitiesCard(
+                recentActivities: recentActivities,
+                isLoading: isLoading,
+                error: error,
+              ),
+            ],
+          ),
+        );
+
+        return isIOS
+            ? CupertinoPageScaffold(
+                backgroundColor: CupertinoColors.systemGrey6,
+                child: SafeArea(
+                  child: RefreshIndicator(
+                    onRefresh: () => repairService.fetchAllRepairRequests(), // เรียกเมธอดของ provider
+                    child: bodyContent,
+                  ),
+                ),
+              )
+            : Scaffold(
+                backgroundColor: Colors.grey[50],
+                body: RefreshIndicator(
+                  onRefresh: () => repairService.fetchAllRepairRequests(), // เรียกเมธอดของ provider
+                  child: bodyContent,
+                ),
               );
-            },
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'กิจกรรมล่าสุด',
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildRecentActivitiesCard(),
-        ],
-      ),
+      },
     );
-
-    return isIOS
-        ? CupertinoPageScaffold(
-            backgroundColor: CupertinoColors.systemGrey6,
-            child: SafeArea(child: bodyContent),
-          )
-        : Scaffold(backgroundColor: Colors.grey[50], body: bodyContent);
   }
 
   Widget _buildStatisticCard(
@@ -347,90 +372,94 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecentActivitiesCard() {
+  // ปรับปรุง _buildRecentActivitiesCard ให้รับข้อมูลจากภายนอก
+  Widget _buildRecentActivitiesCard({
+    required List<RepairHistoryItem> recentActivities,
+    required bool isLoading,
+    required String? error,
+  }) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: _isLoading
+        child: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _error != null
-            ? Center(
-                child: Text(
-                  'Error: $_error',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              )
-            : _recentActivities.isEmpty
-            ? const Center(
-                child: Text(
-                  'ไม่พบกิจกรรมล่าสุด.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              )
-            : Column(
-                children: [
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _recentActivities.length,
-                    separatorBuilder: (context, index) => Divider(
-                      height: 28,
-                      thickness: 0.8,
-                      color: Colors.grey.shade300,
+            : error != null
+                ? Center(
+                    child: Text(
+                      'Error: $error',
+                      style: const TextStyle(color: Colors.red),
                     ),
-                    itemBuilder: (context, index) {
-                      final activity = _recentActivities[index];
-                      return _buildActivityTile(
-                        id: activity.id,
-                        icon: Icons.build_circle_rounded,
-                        task: activity.displayTitle,
-                        statusText: activity.statusText,
-                        time: activity.fullReportDateTime,
-                        statusColor: activity.statusColor,
-                        place: activity.displayPlace,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        widget.onNavigateToHistory?.call();
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                  )
+                : recentActivities.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'ไม่พบกิจกรรมล่าสุด.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      )
+                    : Column(
+                        children: [
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: recentActivities.length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 28,
+                              thickness: 0.8,
+                              color: Colors.grey.shade300,
+                            ),
+                            itemBuilder: (context, index) {
+                              final activity = recentActivities[index];
+                              return _buildActivityTile(
+                                id: activity.id,
+                                icon: Icons.build_circle_rounded,
+                                task: activity.displayTitle,
+                                statusText: activity.statusText,
+                                time: activity.fullReportDateTime,
+                                statusColor: activity.statusColor,
+                                place: activity.displayPlace,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                widget.onNavigateToHistory?.call();
+                              },
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'ดูทั้งหมด',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'ดูทั้งหมด',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
 
-  /// Helper widget for a single recent activity item.
   Widget _buildActivityTile({
     required String id,
     required IconData icon,
