@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 
 import 'package:easy_pro/models/repair_history_item.dart';
+import 'package:easy_pro/screens/repair_detail_screen.dart';
 import 'package:easy_pro/services/repair_service.dart'; // Import RepairService
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -40,7 +41,8 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   // ไม่ต้องมี _recentActivities, _isLoading, _error, _jobStatistics ที่เป็น State ของ Widget โดยตรงแล้ว
   // เพราะจะดึงจาก RepairService ผ่าน Provider แทน
-  List<JobStatistic> _jobStatistics = []; // เก็บแค่ JobStatistic ที่คำนวณจากข้อมูลที่ได้มา
+  List<JobStatistic> _jobStatistics =
+      []; // เก็บแค่ JobStatistic ที่คำนวณจากข้อมูลที่ได้มา
 
   @override
   void initState() {
@@ -51,7 +53,10 @@ class HomeScreenState extends State<HomeScreen> {
   // เมธอด refreshData จะไปสั่งให้ RepairService ดึงข้อมูล
   Future<void> refreshData() async {
     // เข้าถึง instance ของ RepairService ผ่าน Provider
-    await Provider.of<RepairService>(context, listen: false).fetchAllRepairRequests();
+    await Provider.of<RepairService>(
+      context,
+      listen: false,
+    ).fetchAllRepairRequests();
   }
 
   // เมธอดนี้จะหายไป หรือเปลี่ยนไปเป็นการคำนวณ JobStatistic จากข้อมูลใน RepairService
@@ -72,7 +77,8 @@ class HomeScreenState extends State<HomeScreen> {
     return Consumer<RepairService>(
       builder: (context, repairService, child) {
         // คำนวณ JobStatistic ที่นี่ หรือให้ RepairService เตรียมไว้ให้
-        final List<RepairHistoryItem> recentActivities = repairService.allRepairRequests;
+        final List<RepairHistoryItem> recentActivities =
+            repairService.allRepairRequests;
         final bool isLoading = repairService.isLoading;
         final String? error = repairService.error;
 
@@ -175,7 +181,10 @@ class HomeScreenState extends State<HomeScreen> {
                       'icon': Icons.build_circle_outlined,
                       'onTap': widget.onNavigateToRepair,
                       'color': Colors.teal.shade600,
-                      'gradient': [const Color(0xFF006289), Colors.teal.shade400],
+                      'gradient': [
+                        const Color(0xFF006289),
+                        Colors.teal.shade400,
+                      ],
                     },
                     {
                       'title': 'ประวัติ',
@@ -237,7 +246,8 @@ class HomeScreenState extends State<HomeScreen> {
                 backgroundColor: CupertinoColors.systemGrey6,
                 child: SafeArea(
                   child: RefreshIndicator(
-                    onRefresh: () => repairService.fetchAllRepairRequests(), // เรียกเมธอดของ provider
+                    onRefresh: () => repairService
+                        .fetchAllRepairRequests(), // เรียกเมธอดของ provider
                     child: bodyContent,
                   ),
                 ),
@@ -245,7 +255,8 @@ class HomeScreenState extends State<HomeScreen> {
             : Scaffold(
                 backgroundColor: Colors.grey[50],
                 body: RefreshIndicator(
-                  onRefresh: () => repairService.fetchAllRepairRequests(), // เรียกเมธอดของ provider
+                  onRefresh: () => repairService
+                      .fetchAllRepairRequests(), // เรียกเมธอดของ provider
                   child: bodyContent,
                 ),
               );
@@ -387,75 +398,86 @@ class HomeScreenState extends State<HomeScreen> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : error != null
-                ? Center(
-                    child: Text(
-                      'Error: $error',
-                      style: const TextStyle(color: Colors.red),
+            ? Center(
+                child: Text(
+                  'Error: $error',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              )
+            : recentActivities.isEmpty
+            ? const Center(
+                child: Text(
+                  'ไม่พบกิจกรรมล่าสุด.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              )
+            : Column(
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: recentActivities.length > 5
+                        ? 5
+                        : recentActivities.length, // Limit to 5 items
+                    separatorBuilder: (context, index) => Divider(
+                      height: 28,
+                      thickness: 0.8,
+                      color: Colors.grey.shade300,
                     ),
-                  )
-                : recentActivities.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'ไม่พบกิจกรรมล่าสุด.',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
+                    itemBuilder: (context, index) {
+                      final activity = recentActivities[index];
+                      return _buildActivityTile(
+                        id: activity.id,
+                        icon: Icons.build_circle_rounded,
+                        task: activity.displayTitle,
+                        statusText: activity.statusText,
+                        time: activity.fullReportDateTime,
+                        statusColor: activity.statusColor,
+                        place: activity.displayPlace,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RepairDetailScreen(repairItem: activity),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        widget.onNavigateToHistory?.call();
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                      )
-                    : Column(
-                        children: [
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: recentActivities.length,
-                            separatorBuilder: (context, index) => Divider(
-                              height: 28,
-                              thickness: 0.8,
-                              color: Colors.grey.shade300,
-                            ),
-                            itemBuilder: (context, index) {
-                              final activity = recentActivities[index];
-                              return _buildActivityTile(
-                                id: activity.id,
-                                icon: Icons.build_circle_rounded,
-                                task: activity.displayTitle,
-                                statusText: activity.statusText,
-                                time: activity.fullReportDateTime,
-                                statusColor: activity.statusColor,
-                                place: activity.displayPlace,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                widget.onNavigateToHistory?.call();
-                              },
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                'ดูทั้งหมด',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: Text(
+                        'ดูทั้งหมด',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -468,63 +490,69 @@ class HomeScreenState extends State<HomeScreen> {
     required String time,
     required Color statusColor,
     required String place,
+    VoidCallback? onTap, // Add this parameter
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: statusColor.withOpacity(0.1),
-            child: Icon(icon, size: 28, color: statusColor),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '#${id} ${task}',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+    return InkWell(
+      // Wrap the Container with InkWell
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: statusColor.withOpacity(0.1),
+              child: Icon(icon, size: 28, color: statusColor),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '#${id} ${task}',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  place,
-                  style: const TextStyle(fontSize: 15, color: Colors.black45),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  time,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: statusColor.withOpacity(0.3),
-                width: 0.8,
+                  const SizedBox(height: 6),
+                  Text(
+                    place,
+                    style: const TextStyle(fontSize: 15, color: Colors.black45),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    time,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
               ),
             ),
-            child: Text(
-              statusText,
-              style: TextStyle(
-                color: statusColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: statusColor.withOpacity(0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                statusText,
+                style: TextStyle(
+                  color: statusColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
