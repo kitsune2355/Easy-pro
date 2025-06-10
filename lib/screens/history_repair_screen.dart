@@ -83,6 +83,7 @@ class _HistoryRepairScreenState extends State<HistoryRepairScreen> {
               )
             : Scaffold(
                 body: RefreshIndicator( // เพิ่ม RefreshIndicator
+                backgroundColor: Colors.grey.shade50,
                   onRefresh: () => repairService.fetchAllRepairRequests(),
                   child: content,
                 ),
@@ -93,8 +94,9 @@ class _HistoryRepairScreenState extends State<HistoryRepairScreen> {
 
   Widget _buildHistoryItemCard(BuildContext context, RepairHistoryItem item) {
     return Card(
+      color: Colors.white,
       elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
