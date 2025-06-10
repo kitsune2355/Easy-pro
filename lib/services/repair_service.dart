@@ -63,6 +63,34 @@ class RepairService extends ChangeNotifier {
     }
   }
 
-  // หากมีเมธอดอื่นๆ ที่ต้องการให้ Provider จัดการ ก็ให้ลบ static ออกเช่นกัน
-  // และเรียก notifyListeners() หลังจากมีการเปลี่ยนแปลงข้อมูลภายในคลาส
+  Future<RepairHistoryItem?> fetchRepairItemById(int id) async {
+  _isLoading = true;
+  _error = null;
+  notifyListeners(); // แจ้งให้ UI อัปเดต (ถ้ามีตัวแสดงสถานะโหลด)
+
+  try {
+    final responseData = await ApiService.get('get_repair_by_id.php?id=$id');
+
+    if (responseData is Map && responseData.containsKey('status')) {
+      if (responseData['status'] == 'success' && responseData.containsKey('data')) {
+        // แปลง JSON เป็น RepairHistoryItem
+        final item = RepairHistoryItem.fromJson(responseData['data']);
+        return item;
+      } else {
+        _error = responseData['message'] ?? 'ไม่สามารถโหลดข้อมูลแจ้งซ่อมจาก API ได้';
+        throw Exception(_error);
+      }
+    } else {
+      _error = 'รูปแบบข้อมูลที่ตอบกลับไม่ถูกต้อง';
+      throw Exception(_error);
+    }
+  } catch (e) {
+    _error = e.toString().replaceFirst('Exception: ', '');
+    return null;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
 }

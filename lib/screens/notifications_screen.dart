@@ -1,3 +1,5 @@
+import 'package:easy_pro/screens/repair_detail_screen.dart';
+import 'package:easy_pro/services/repair_service.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_pro/services/notification_service.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +29,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   // เมธอดสำหรับเรียกใช้ fetchNotifications จาก NotificationService
   Future<void> _fetchNotifications() async {
     // ใช้ listen: false เพราะเราเรียกใช้ใน initState และใน _onRefresh
-    await Provider.of<NotificationService>(context, listen: false).fetchNotifications(userId: _currentUserId);
+    await Provider.of<NotificationService>(
+      context,
+      listen: false,
+    ).fetchNotifications(userId: _currentUserId);
   }
 
   // เมธอดที่จะถูกเรียกเมื่อผู้ใช้ดึงลงเพื่อรีเฟรช
@@ -40,10 +45,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     // Watch the NotificationService for changes to the list of notifications
     final notificationService = Provider.of<NotificationService>(context);
     // Filter notifications based on the current user ID and sort by createdAt
-    final notifications = notificationService.notifications
-        .where((notification) => notification.user_id == _currentUserId)
-        .toList()
-        ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Sort in descending order
+    final notifications =
+        notificationService.notifications
+            .where((notification) => notification.user_id == _currentUserId)
+            .toList()
+          ..sort(
+            (a, b) => b.createdAt.compareTo(a.createdAt),
+          ); // Sort in descending order
 
     return Scaffold(
       body: notifications.isEmpty
@@ -51,7 +59,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_none, size: 32, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.notifications_none,
+                    size: 32,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(height: 10),
                   Text(
                     'คุณยังไม่มีการแจ้งเตือนใหม่',
@@ -68,26 +80,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 itemBuilder: (context, index) {
                   final notification = notifications[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 6.0,
+                      horizontal: 4.0,
+                    ),
                     elevation: notification.isRead ? 0.5 : 2,
                     // **Change background color based on isRead status**
                     color: notification.isRead
-                        ? Colors.white // White if read
-                        : const Color.fromARGB(255, 241, 249, 255), // Light blue if unread
+                        ? Colors
+                              .white // White if read
+                        : const Color.fromARGB(
+                            255,
+                            241,
+                            249,
+                            255,
+                          ), // Light blue if unread
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: notification.isRead ? BorderSide(color: Colors.grey.shade200) : BorderSide.none,
+                      side: notification.isRead
+                          ? BorderSide(color: Colors.grey.shade200)
+                          : BorderSide.none,
                     ),
                     child: ListTile(
                       leading: Icon(
                         _getNotificationIcon(notification.type),
-                        color: notification.isRead ? Colors.grey : Theme.of(context).primaryColor,
+                        color: notification.isRead
+                            ? Colors.grey
+                            : Theme.of(context).primaryColor,
                       ),
                       title: Text(
                         '${notification.title} ${notification.desc}',
                         style: TextStyle(
-                          fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-                          color: notification.isRead ? Colors.grey.shade700 : Colors.black87,
+                          fontWeight: notification.isRead
+                              ? FontWeight.normal
+                              : FontWeight.bold,
+                          color: notification.isRead
+                              ? Colors.grey.shade700
+                              : Colors.black87,
                         ),
                       ),
                       subtitle: Column(
@@ -96,27 +125,60 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Text(
                             'อาคาร ${notification.building ?? 'ไม่ระบุ'} ชั้น ${notification.floor ?? 'ไม่ระบุ'} ห้อง ${notification.room ?? 'ไม่ระบุ'}',
                             style: TextStyle(
-                              color: notification.isRead ? Colors.grey.shade600 : Colors.black54,
+                              color: notification.isRead
+                                  ? Colors.grey.shade600
+                                  : Colors.black54,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            DateFormat('d MMMM y, HH:mm', 'th').format(notification.createdAt),
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                            DateFormat(
+                              'd MMMM y, HH:mm',
+                              'th',
+                            ).format(notification.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                         ],
                       ),
                       trailing: notification.isRead
                           ? null
                           : Icon(Icons.circle, size: 12, color: Colors.cyan),
-                      onTap: () {
-                        // Mark the specific notification as read by its ID
-                        notificationService.markAsRead(notification.user_id); 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Clicked on notification: ${notification.title}')),
+                      onTap: () async {
+                        // อ่าน context ของ RepairService
+                        final repairService = Provider.of<RepairService>(
+                          context,
+                          listen: false,
                         );
+
+                        // mark เป็นอ่านแล้ว
+                        notificationService.markAsRead(notification.id);
+
+                        // ดึง repairItem จาก relatedId
+                        final repairItem = await repairService
+                            .fetchRepairItemById(notification.relatedId ?? 0);
+
+                        if (repairItem != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  RepairDetailScreen(repairItem: repairItem),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'ไม่พบข้อมูลการแจ้งซ่อมที่เกี่ยวข้อง',
+                              ),
+                            ),
+                          );
+                        }
                       },
                     ),
                   );
