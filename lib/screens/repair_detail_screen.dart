@@ -76,7 +76,7 @@ class RepairDetailScreen extends StatelessWidget {
             // --- Original Repair Request Info ---
             _buildInfoCard(
               context,
-              title: 'ข้อมูลการแจ้งซ่อมเดิม',
+              title: 'ข้อมูลการแจ้งซ่อม',
               children: [
                 _buildInfoTile(
                     Icons.event, 'วันที่แจ้ง', repairItem.reportDate, primaryColor),

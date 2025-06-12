@@ -1,5 +1,3 @@
-// lib/screens/home_screen.dart
-
 import 'package:easy_pro/models/repair_history_item.dart';
 import 'package:easy_pro/screens/repair_detail_screen.dart';
 import 'package:easy_pro/services/repair_service.dart'; // Import RepairService
@@ -27,11 +25,13 @@ class JobStatistic {
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onNavigateToRepair;
   final VoidCallback? onNavigateToHistory;
+  final VoidCallback? onNavigateToPendingJob;
 
   const HomeScreen({
     super.key,
     this.onNavigateToRepair,
     this.onNavigateToHistory,
+    this.onNavigateToPendingJob,
   });
 
   @override
@@ -194,6 +194,16 @@ class HomeScreenState extends State<HomeScreen> {
                       'gradient': [
                         const Color(0xFFB13579),
                         Colors.deepPurple.shade400,
+                      ],
+                    },
+                    {
+                      'title': 'ส่งงาน',
+                      'icon': Icons.handyman,
+                      'onTap': widget.onNavigateToPendingJob,
+                      'color': Colors.deepPurple.shade600,
+                      'gradient': [
+                        const Color(0xFF3598B1),
+                        const Color(0xFF6F35B1),
                       ],
                     },
                   ];

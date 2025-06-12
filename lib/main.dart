@@ -66,6 +66,12 @@ class EasyProApp extends StatelessWidget {
       supportedLocales: const [Locale('th', ''), Locale('en', '')],
       locale: const Locale('th', ''),
       theme: baseTheme.copyWith(
+        colorScheme: baseTheme.colorScheme.copyWith(
+          primary: const Color(0xFF006B9F),
+          secondary: const Color(0xFF009F6F),
+          error: const Color(0xFFF44336),
+          onPrimary: Colors.white,
+        ),
         textTheme: GoogleFonts.promptTextTheme(baseTheme.textTheme).copyWith(
           displayLarge: GoogleFonts.prompt(
             fontSize: 20,
@@ -80,8 +86,8 @@ class EasyProApp extends StatelessWidget {
           bodySmall: GoogleFonts.prompt(fontSize: 14),
         ),
       ),
-      home: const LoginScreen(),
-      // home: MainScreen(),
+      // home: const LoginScreen(),
+      home: MainScreen(),
     );
   }
 }

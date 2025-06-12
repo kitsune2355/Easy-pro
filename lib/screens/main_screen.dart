@@ -1,8 +1,8 @@
-// lib/screens/main_screen.dart
 import 'package:easy_pro/screens/history_repair_screen.dart';
 import 'package:easy_pro/screens/home_screen.dart';
 import 'package:easy_pro/screens/notifications_screen.dart'
     show NotificationsScreen;
+import 'package:easy_pro/screens/pending_jobs_screen.dart';
 import 'package:easy_pro/screens/profile_screen.dart';
 import 'package:easy_pro/screens/settings_screen.dart';
 import 'package:easy_pro/screens/repair_screen.dart';
@@ -34,11 +34,13 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(
         onNavigateToRepair: () => _onItemTapped(3),
         onNavigateToHistory: () => _onItemTapped(4),
+        onNavigateToPendingJob: () => _onItemTapped(6),
       ),
       const SettingsScreen(),
       const RepairScreen(),
       const HistoryRepairScreen(),
-      const NotificationsScreen(), // NotificationsScreen will now fetch its own data
+      const NotificationsScreen(),
+      const PendingJobsScreen()
     ];
 
     _pageTitles = [
@@ -48,6 +50,7 @@ class _MainScreenState extends State<MainScreen> {
       'แจ้งซ่อม',
       'ประวัติการซ่อม',
       'การแจ้งเตือน',
+      'งานที่รอปิดตรวจ',
     ];
 
     _mainDrawerItems = [
@@ -104,18 +107,17 @@ class _MainScreenState extends State<MainScreen> {
 
     // เมื่อ navigate ไปที่ NotificationsScreen (index 5) ให้ทำเครื่องหมายแจ้งเตือนที่ยังไม่ได้อ่านทั้งหมดว่าอ่านแล้ว
     if (index == 5) {
-      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      final notificationService = Provider.of<NotificationService>(
+        context,
+        listen: false,
+      );
 
       // สร้างรายการ Future สำหรับการเรียก markNotificationAsRead แต่ละครั้ง
       final List<Future<void>> markAsReadFutures = [];
-      notificationService.notifications
-          .where((n) => !n.isRead)
-          .forEach(
-            (n) {
-              // เพิ่ม Future เข้าไปในลิสต์
-              markAsReadFutures.add(notificationService.markAsRead(n.user_id));
-            },
-          );
+      notificationService.notifications.where((n) => !n.isRead).forEach((n) {
+        // เพิ่ม Future เข้าไปในลิสต์
+        markAsReadFutures.add(notificationService.markAsRead(n.user_id));
+      });
 
       // **สำคัญมาก:** รอให้การเรียก markNotificationAsRead ทั้งหมดเสร็จสิ้น
       await Future.wait(markAsReadFutures);
@@ -142,15 +144,13 @@ class _MainScreenState extends State<MainScreen> {
         foregroundColor: Colors.white,
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
-        leading:
-            _selectedIndex == 3 || _selectedIndex == 4 || _selectedIndex == 5
+        leading: [3, 4, 5, 6].contains(_selectedIndex)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () {
-                  _onItemTapped(_bottomNavIndex);
-                },
+                onPressed: () => _onItemTapped(_bottomNavIndex),
               )
             : null,
+
         actions: [
           Stack(
             children: [
