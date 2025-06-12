@@ -207,15 +207,13 @@ class _BackgroundGradient extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
+          begin: Alignment.topRight,
           end: Alignment.bottomRight,
           colors: [
+            Colors.white,
+            Colors.white,
             Color(0xFFC5E0FF),
-            Colors.white,
-            Colors.white,
-            Colors.white,
             Color(0xFF68A6EC),
-            AppColors.primaryDeepBlue,
           ],
         ),
       ),
@@ -319,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Only show logo if keyboard is not open
                     if (!isKeyboardOpen) ...[
                       const _Logo(),
-                      const SizedBox(height: 50), // Ample space below logo
+                      const SizedBox(height: 30), // Ample space below logo
                     ],
                     Card(
                       // Enhanced Card for the login form
