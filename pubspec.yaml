@@ -28,13 +28,14 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/Easy_Prologo.png"
-
+  image_path: "assets/images/logo.png"
 
 flutter:
   assets:
     - assets/images/Logo_pro.png
     - assets/images/Easy_Prologo.png
     - assets/images/Easy_Prologo_White.png
+    - assets/images/logo.png
+    - assets/images/logo_full.png
 
   uses-material-design: true

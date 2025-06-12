@@ -4,34 +4,69 @@ import 'package:easy_pro/controllers/login_controller.dart'; // Assuming this ex
 import 'package:easy_pro/screens/main_screen.dart'; // Assuming this exists
 import 'package:flutter/material.dart';
 
-// Helper function for input decoration
-InputDecoration _inputDecoration(String hint, {Widget? prefixIcon}) {
+// Define a sophisticated and professional color palette
+class AppColors {
+  static const Color primaryDeepBlue = Color(0xFF0C3B5E); // A deep, rich blue
+  static const Color primaryLightBlue = Color(
+    0xFF1E639A,
+  ); // A slightly lighter primary for accents/gradients
+  static const Color backgroundLight = Color(
+    0xFFE8F1F2,
+  ); // Very light blue-grey for background
+  static const Color cardBackground =
+      Colors.white; // Pure white for card surfaces
+  static const Color textDark = Color(0xFF333333); // Dark text for readability
+  static const Color textMedium = Color(
+    0xFF707070,
+  ); // Medium grey for hints and secondary text
+  static const Color dividerLight = Color(
+    0xFFE0E0E0,
+  ); // Light grey for borders/dividers
+  static const Color errorRed = Color(0xFFD32F2F); // Standard error red
+}
+
+// Helper function for input decoration - refined for professionalism
+InputDecoration _inputDecoration(
+  String hint, {
+  Widget? prefixIcon,
+  Widget? suffixIcon,
+}) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: Color(0xFFB0B0B0)),
-    fillColor: Colors.white,
+    hintStyle: const TextStyle(color: AppColors.textMedium, fontSize: 16),
+    fillColor: AppColors.cardBackground, // Always white inside the card
     filled: true,
     contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
     prefixIcon: prefixIcon,
+    suffixIcon: suffixIcon,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12), // Softer rounded corners
-      borderSide: BorderSide.none, // No border by default, rely on fill color
+      borderRadius: BorderRadius.circular(12), // Slightly rounded for softness
+      borderSide: const BorderSide(
+        color: AppColors.dividerLight,
+        width: 1,
+      ), // Light, subtle border
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFFE0E0E0), width: 1), // Subtle border when enabled
+      borderSide: const BorderSide(
+        color: AppColors.dividerLight, // Subtle border when enabled
+        width: 1,
+      ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF006B9F), width: 2), // Primary color border when focused
+      borderSide: const BorderSide(
+        color: AppColors.primaryLightBlue, // Primary accent color when focused
+        width: 2, // Thicker border on focus for clear indication
+      ),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.redAccent, width: 2), // Red border for errors
+      borderSide: const BorderSide(color: AppColors.errorRed, width: 2),
     ),
     focusedErrorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.red, width: 2), // Darker red when focused on error
+      borderSide: const BorderSide(color: AppColors.errorRed, width: 2),
     ),
   );
 }
@@ -42,7 +77,11 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('assets/images/Easy_Prologo_White.png', height: 150); // Slightly larger logo
+    return Image.asset(
+      'assets/images/logo_full.png', // Ensure this path is correct and the logo is high-res
+      height: 160, // Optimized height for a refined look
+      fit: BoxFit.contain,
+    );
   }
 }
 
@@ -57,9 +96,13 @@ class _UsernameField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.text,
+      style: const TextStyle(color: AppColors.textDark, fontSize: 16),
       decoration: _inputDecoration(
         "ชื่อผู้ใช้",
-        prefixIcon: const Icon(Icons.person_outline, color: Color(0xFFB0B0B0)),
+        prefixIcon: const Icon(
+          Icons.person_outline,
+          color: AppColors.textMedium,
+        ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -89,14 +132,14 @@ class _PasswordFieldState extends State<_PasswordField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscureText,
+      style: const TextStyle(color: AppColors.textDark, fontSize: 16),
       decoration: _inputDecoration(
         "รหัสผ่าน",
-        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFFB0B0B0)),
-      ).copyWith(
+        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textMedium),
         suffixIcon: IconButton(
           icon: Icon(
             _obscureText ? Icons.visibility_off : Icons.visibility,
-            color: const Color(0xFFB0B0B0),
+            color: AppColors.textMedium,
           ),
           onPressed: () {
             setState(() {
@@ -115,7 +158,7 @@ class _PasswordFieldState extends State<_PasswordField> {
   }
 }
 
-// Reusable widget for login button
+// Reusable widget for login button - refined for elegance
 class _LoginButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isLoading;
@@ -126,104 +169,57 @@ class _LoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 56, // Slightly taller button
+      height: 54, // Slightly taller for presence
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 15, 77, 119),
+          backgroundColor:
+              AppColors.primaryDeepBlue, // Deep blue for primary action
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Softer rounded corners
+            borderRadius: BorderRadius.circular(
+              12,
+            ), // Matching input field corners
           ),
-          elevation: 5, // Add a subtle shadow
-          shadowColor: Theme.of(context).primaryColor.withOpacity(0.4),
+          elevation: 8, // More prominent, but diffused shadow
+          shadowColor: AppColors.primaryDeepBlue.withOpacity(
+            0.3,
+          ), // Soft shadow color
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        onPressed: isLoading ? null : onPressed, // Disable button when loading
+        onPressed: isLoading ? null : onPressed,
         child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                "เข้าสู่ระบบ", // Changed text to Thai for consistency
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+            ? const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ) // Thinner progress indicator
+            : const Text("เข้าสู่ระบบ"),
       ),
     );
   }
 }
 
-// Modernized background shapes
-class _BackgroundShapes extends StatelessWidget {
-  const _BackgroundShapes({super.key});
+// Modernized background with a subtle gradient (replacing distinct shapes)
+class _BackgroundGradient extends StatelessWidget {
+  const _BackgroundGradient({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Large, subtle circle in the bottom left
-        Positioned(
-          bottom: -MediaQuery.of(context).size.width * 0.3,
-          left: -MediaQuery.of(context).size.width * 0.3,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: MediaQuery.of(context).size.width * 0.8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-            ),
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFC5E0FF),
+            Colors.white,
+            Colors.white,
+            Colors.white,
+            Color(0xFF68A6EC),
+            AppColors.primaryDeepBlue,
+          ],
         ),
-        // Smaller, subtle circle in the top right
-        Positioned(
-          top: -MediaQuery.of(context).size.width * 0.1,
-          right: -MediaQuery.of(context).size.width * 0.1,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.4,
-            height: MediaQuery.of(context).size.width * 0.4,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-            ),
-          ),
-        ),
-        // Abstract wave/blob shape (more complex, using CustomPainter)
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: CustomPaint(
-            size: Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height * 0.3),
-            painter: WavePainter(color: Colors.white.withOpacity(0.08)),
-          ),
-        ),
-      ],
+      ),
     );
-  }
-}
-
-// Custom painter for a subtle wave/blob shape
-class WavePainter extends CustomPainter {
-  final Color color;
-
-  WavePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.4);
-    path.quadraticBezierTo(size.width * 0.25, size.height * 0.6, size.width * 0.5, size.height * 0.4);
-    path.quadraticBezierTo(size.width * 0.75, size.height * 0.2, size.width, size.height * 0.3);
-    path.lineTo(size.width, 0);
-    path.lineTo(0, 0);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }
 
@@ -263,6 +259,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final hashedPassword = generateMd5(passwordController.text.trim());
 
+      // Simulate API call delay for demonstration
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Replace with actual LoginController.login call
       bool success = await LoginController.login(
         usernameController.text.trim(),
         hashedPassword,
@@ -271,24 +271,25 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => isLoading = false);
 
       if (success) {
-        // Navigate to MainScreen on successful login
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainScreen()),
         );
       } else {
-        // Show a more prominent error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
               'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: 15),
             ),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating, // Makes it float above content
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            margin: EdgeInsets.all(20),
+            backgroundColor: AppColors.errorRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(20),
+            duration: const Duration(seconds: 3), // Show for a bit longer
           ),
         );
       }
@@ -300,58 +301,79 @@ class _LoginScreenState extends State<LoginScreen> {
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.98),
+      backgroundColor: Colors.transparent, // Transparent to show gradient
       body: Stack(
         children: [
-          const _BackgroundShapes(), // Modernized background
+          const _BackgroundGradient(), // Subtle gradient background
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Only show logo if keyboard is not open
-                      if (!isKeyboardOpen) ...[
-                        const _Logo(),
-                        const SizedBox(height: 60), // Increased space below logo
-                      ],
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            _UsernameField(controller: usernameController),
-                            const SizedBox(height: 20),
-                            _PasswordField(controller: passwordController),
-                            const SizedBox(height: 30), // Adjusted spacing
-                            _LoginButton(
-                              onPressed: _handleLogin,
-                              isLoading: isLoading,
-                            ),
-                            const SizedBox(height: 20),
-                          ],
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28.0,
+                ), // Slightly more horizontal padding
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.center, // Center content horizontally
+                  children: [
+                    // Only show logo if keyboard is not open
+                    if (!isKeyboardOpen) ...[
+                      const _Logo(),
+                      const SizedBox(height: 50), // Ample space below logo
+                    ],
+                    Card(
+                      // Enhanced Card for the login form
+                      elevation: 12, // More pronounced, but soft shadow
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          16,
+                        ), // Softer corners for the card
+                      ),
+                      color: AppColors.cardBackground, // White card background
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(
+                          32.0,
+                        ), // Generous padding inside the card
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _UsernameField(controller: usernameController),
+                              const SizedBox(height: 20),
+                              _PasswordField(controller: passwordController),
+                              const SizedBox(height: 30),
+                              _LoginButton(
+                                onPressed: _handleLogin,
+                                isLoading: isLoading,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      SizedBox(height: isKeyboardOpen ? 20 : 0), // Dynamic spacing for keyboard
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: isKeyboardOpen ? 20 : 0),
+                  ],
                 ),
               ),
             ),
           ),
-          // Company name at the bottom right
+          // Company name at the bottom
           if (!isKeyboardOpen)
             Positioned(
-              bottom: 20,
-              right: 20,
+              bottom: 25,
+              left: 0,
+              right: 0,
               child: Text(
                 'PROACTIVE MANAGEMENT CO,.LTD',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6), // Softer opacity
-                  fontSize: 8, // Slightly larger font
-                  letterSpacing: 0.5,
+                  color: Colors.white, // Softer, more integrated
+                  fontSize: 11, // Slightly larger
+                  letterSpacing: 1.0, // Increased for distinctness
+                  fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center, // Centered for balance
               ),
             ),
         ],

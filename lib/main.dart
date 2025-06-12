@@ -80,8 +80,8 @@ class EasyProApp extends StatelessWidget {
           bodySmall: GoogleFonts.prompt(fontSize: 14),
         ),
       ),
-      // home: const LoginScreen(),
-      home: MainScreen(),
+      home: const LoginScreen(),
+      // home: MainScreen(),
     );
   }
 }

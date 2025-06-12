@@ -67,6 +67,7 @@ class RepairDetailScreen extends StatelessWidget {
                         color: Colors.grey[700],
                       ),
                     ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
