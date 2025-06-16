@@ -284,7 +284,8 @@ class HomeScreenState extends State<HomeScreen> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      shadowColor: Colors.black.withOpacity(0.08),
+      color: Colors.white,
+      shadowColor: Colors.black.withOpacity(0.8),
       child: Container(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -403,6 +404,7 @@ class HomeScreenState extends State<HomeScreen> {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       margin: EdgeInsets.zero,
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: isLoading

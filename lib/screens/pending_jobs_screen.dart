@@ -107,6 +107,7 @@ class _PendingJobsScreenState extends State<PendingJobsScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12), // มุมโค้งมนขึ้น
                     ),
+                    color: colorScheme.onPrimary, // สีพื้นหลัง
                     child: ExpansionTile(
                       tilePadding: const EdgeInsets.fromLTRB(
                         16.0,
